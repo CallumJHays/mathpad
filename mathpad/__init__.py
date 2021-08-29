@@ -11,4 +11,4 @@ from .var import var
 sympy.printing.printer.Printer.set_global_settings(min=-3, max=4)  # type: ignore
 sympy.init_printing(True, use_unicode=True, use_latex=True)  # type: ignore
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
