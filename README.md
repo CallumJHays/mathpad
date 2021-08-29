@@ -1,6 +1,7 @@
-# Block Diagram ( `mathpad` )
+# MathPad
 
-<p align="center">
+<!-- TODO: set up all the services needed for these badges -->
+<!-- <p align="center">
   <a href="https://github.com/CallumJHays/mathpad/actions?query=workflow%3ACI">
     <img src="https://img.shields.io/github/workflow/status/CallumJHays/mathpad/CI/main?label=CI&logo=github&style=flat-square" alt="CI Status" >
   </a>
@@ -28,13 +29,30 @@
   </a>
   <img src="https://img.shields.io/pypi/pyversions/mathpad.svg?style=flat-square&logo=python&amp;logoColor=fff" alt="Supported Python versions">
   <img src="https://img.shields.io/pypi/l/mathpad.svg?style=flat-square" alt="License">
-</p>
+</p> -->
 
-Simplified interface to Sympy for solving physics, engineering and maths problems
+Type-hinted, simplified interface to `sympy` for solving engineering, science and maths problems.
+
+## Example
+
+A car is driving at 50 miles per hour. The driver hits the brakes,
+decelerating at a rate of 2 meters per second squared. How long will the car take to come to come to a halt?
+
+```python
+from mathpad import *
+
+t = var("t", seconds)  # "t seconds"
+
+velocity = 5 * (miles / hour)  # "5 miles/hour"
+
+deceleration = 2 * meters / second ** 2  # "10 meters/second**2"
+
+solution = solve(t, t == velocity / deceleration)  # "Solution(t = 1.1176 seconds)"
+```
 
 ## Installation
 
-Install this via pip (or your favourite package manager):
+Install via pip:
 
 `pip install mathpad`
 

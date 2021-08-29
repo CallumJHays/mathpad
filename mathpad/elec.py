@@ -3,13 +3,9 @@
 from mathpad import *
 
 
-@relation
+@equation
 def resistance_resistivity(
-    *,
-    R: Q[Impedance],
-    rho: Q[Resistivity],
-    l: Q[Length],
-    A: Q[Area]
+    *, R: Q[Impedance], rho: Q[Resistivity], l: Q[Length], A: Q[Area]
 ):
     "Relate resistance and resistivity"
     return R == rho * l * A
