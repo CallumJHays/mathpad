@@ -43,7 +43,7 @@ from mathpad import *
 
 t = var("t", seconds)  # "t seconds"
 
-velocity = 5 * (miles / hour)  # "5 miles/hour"
+velocity = 5 * miles / hour  # "5 miles/hour"
 
 deceleration = 2 * meters / second ** 2  # "10 meters/second**2"
 
