@@ -45,7 +45,7 @@ t = var("t", seconds)  # "t seconds"
 
 velocity = 5 * miles / hour  # "5 miles/hour"
 
-deceleration = 2 * meters / second ** 2  # "10 meters/second**2"
+deceleration = 2 * m / s ** 2  # "10 meters/second**2"
 
 solution = solve(t, t == velocity / deceleration)  # "Solution(t = 1.1176 seconds)"
 ```
