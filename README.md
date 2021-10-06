@@ -35,7 +35,7 @@ Type-hinted, simplified interface to `sympy` for solving engineering, science an
 
 ## Example
 
-A car is driving at 50 miles per hour. The driver hits the brakes,
+A car is driving at 5 miles per hour. The driver hits the brakes,
 decelerating at a rate of 2 meters per second squared. How long will the car take to come to come to a halt?
 
 ```python
