@@ -1,36 +1,40 @@
 import sympy.physics.units.definitions as u
 import sympy.physics.units.definitions.dimension_definitions as d
 
-from mathpad.physical_quantity import AbstractPhysicalQuantity, Dimensionless
+from mathpad.physical_quantity import Unit, Dimensionless
 
 # TODO: rearrange in alphabetical order
 
 
-class Length(AbstractPhysicalQuantity):
+class Length(Unit):
     dimension = d.length
 
 
-class Time(AbstractPhysicalQuantity):
+class Time(Unit):
     dimension = d.time
 
 
-class Impedance(AbstractPhysicalQuantity):
+class AngularMomentum(Unit):
+    dimension = d.mass * d.velocity * d.angle
+
+
+class Impedance(Unit):
     dimension = d.impedance
 
 
-class Resistivity(AbstractPhysicalQuantity):
+class Resistivity(Unit):
     dimension = d.impedance * d.length
 
 
-class Inductance(AbstractPhysicalQuantity):
+class Inductance(Unit):
     dimension = d.inductance
 
 
-class Capacitance(AbstractPhysicalQuantity):
+class Capacitance(Unit):
     dimension = d.capacitance
 
 
-class Mass(AbstractPhysicalQuantity):
+class Mass(Unit):
     dimension = d.mass
 
 
@@ -54,140 +58,144 @@ class SteRadian(Angle):
     dimension = u.steradian.dimension
 
 
-class Frequency(AbstractPhysicalQuantity):
+class Frequency(Unit):
     dimension = d.frequency
 
 
-class Current(AbstractPhysicalQuantity):
+class Current(Unit):
     dimension = d.current
 
 
-class Action(AbstractPhysicalQuantity):
+class Action(Unit):
     dimension = d.action
 
 
-class AmountOfSubstance(AbstractPhysicalQuantity):
+class AmountOfSubstance(Unit):
     dimension = d.amount_of_substance
 
 
-class Radioactivity(AbstractPhysicalQuantity):
+class Radioactivity(Unit):
     # same SI unit as frequency but is (should be?) treated differently
     dimension = 1 / d.time
 
 
-class Charge(AbstractPhysicalQuantity):
+class Charge(Unit):
     dimension = d.charge
 
 
-class Dioptre(AbstractPhysicalQuantity):
+class Dioptre(Unit):
     # technicaly "Optical/Refractive Power" but this is more obvious
     dimension = 1 / d.length
 
 
-class Lumosity(AbstractPhysicalQuantity):
+class Lumosity(Unit):
     dimension = d.luminous_intensity
 
 
-class GravityConstant(AbstractPhysicalQuantity):
+class GravityConstant(Unit):
     # useful to name this as a type; but is only ever a constant (defined in constants.py)
     dimension = d.length ** 3 / (d.mass * d.time ** 2)
 
 
-class Gray(AbstractPhysicalQuantity):
+class Gray(Unit):
     # technicaly measurement of "Absorbed Dose" but this is more obvious
     dimension = d.energy / d.mass
 
 
-class Energy(AbstractPhysicalQuantity):
+class Energy(Unit):
     dimension = d.energy
 
 
-class Temperature(AbstractPhysicalQuantity):
+class Temperature(Unit):
     dimension = d.temperature
 
 
-class Force(AbstractPhysicalQuantity):
+class Force(Unit):
     dimension = d.force
 
 
-class Pressure(AbstractPhysicalQuantity):
+class Elasticity(Unit):
+    dimension = d.force / d.length
+
+
+class Pressure(Unit):
     dimension = d.pressure
 
 
-class MolarGasConstant(AbstractPhysicalQuantity):
+class MolarGasConstant(Unit):
     # useful to name this as a specific dimension; but is only ever a constant (defined in constants.py)
     dimension = d.energy / (d.amount_of_substance * d.temperature)
 
 
-class Conductance(AbstractPhysicalQuantity):
+class Conductance(Unit):
     dimension = d.conductance
 
 
-class MagneticDensity(AbstractPhysicalQuantity):
+class MagneticDensity(Unit):
     dimension = d.magnetic_density
 
 
-class MagneticFlux(AbstractPhysicalQuantity):
+class MagneticFlux(Unit):
     dimension = d.magnetic_flux
 
 
-class Voltage(AbstractPhysicalQuantity):
+class Voltage(Unit):
     dimension = d.voltage
 
 
-class Power(AbstractPhysicalQuantity):
+class Power(Unit):
     dimension = d.power
 
 
-class Acceleration(AbstractPhysicalQuantity):
+class Acceleration(Unit):
     dimension = d.acceleration
 
 
-class Information(AbstractPhysicalQuantity):
+class Information(Unit):
     dimension = d.information
 
 
-class Velocity(AbstractPhysicalQuantity):
+class Velocity(Unit):
     dimension = d.velocity
 
 
-class LuminousIntensity(AbstractPhysicalQuantity):
+class LuminousIntensity(Unit):
     dimension = d.luminous_intensity
 
 
-class Area(AbstractPhysicalQuantity):
+class Area(Unit):
     dimension = d.length ** 2
 
 
-class Volume(AbstractPhysicalQuantity):
+class Volume(Unit):
     dimension = d.length ** 3
 
 
-class Permittivity(AbstractPhysicalQuantity):
+class Permittivity(Unit):
     dimension = d.capacitance / d.length
 
 
-class Katal(AbstractPhysicalQuantity):
+class Katal(Unit):
     # Otherwise 'catalytic activity'
     dimension = d.amount_of_substance / d.time
 
 
-class Illuminance(AbstractPhysicalQuantity):
+class Illuminance(Unit):
     dimension = d.luminous_intensity / d.length ** 2
 
 
-class Density(AbstractPhysicalQuantity):
+class Density(Unit):
     dimension = d.mass / d.length ** 3
 
 
-class EnergyDensity(AbstractPhysicalQuantity):
+class EnergyDensity(Unit):
     dimension = d.energy / d.length ** 3
 
 
-class PlanckIntensity(AbstractPhysicalQuantity):
+class PlanckIntensity(Unit):
     # TODO; can/should we merge this with LuminousIntensity?
     dimension = d.mass / d.time ** 3
 
 
-class Momentum(AbstractPhysicalQuantity):
+class Momentum(Unit):
     dimension = d.mass * d.velocity

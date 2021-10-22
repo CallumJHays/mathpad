@@ -41,14 +41,17 @@ decelerating at a rate of 2 meters per second squared. How long will the car tak
 ```python
 from mathpad import *
 
-t = var("t", seconds)  # "t seconds"
+t = "t" * seconds  # "t seconds"
 
-velocity = 5 * (miles / hour)  # "5 miles/hour"
+velocity = 5 * miles / hour  # "5 miles/hour"
 
 deceleration = 2 * meters / second ** 2  # "10 meters/second**2"
 
-solution = solve(t, t == velocity / deceleration)  # "Solution(t = 1.1176 seconds)"
+solution = solve(t, t == velocity / deceleration)  
+print(solution) # "Solution(t = 1.1176 seconds)"
 ```
+
+Check out more examples in the [Examples directory](./examples/)
 
 ## Installation
 

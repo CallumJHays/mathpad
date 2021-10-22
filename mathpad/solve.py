@@ -1,13 +1,8 @@
-from typing import Collection, Dict, List, Union, overload
-
+from typing import Collection, Dict, Set, Tuple, Union, overload
+from ansitable import ANSITable
 import sympy
-from sympy.solvers.solveset import linsolve
 
-from mathpad.physical_quantity import (
-    AbstractPhysicalQuantity,
-    GPhysicalQuantity,
-    PhysicalQuantity,
-)
+from mathpad.physical_quantity import AbstractPhysicalQuantity, GPhysicalQuantity
 from mathpad.equation import Equation
 
 
@@ -18,7 +13,9 @@ class Solution:
         self.result_dict = result_dict
 
     def __getitem__(self, k: GPhysicalQuantity) -> GPhysicalQuantity:
-        return k.__class__(k.units, self.result_dict[k])
+        result = self.result_dict[k]
+        assert result.units == k.units
+        return result
 
     def __repr__(self):
         return self._repr("", " ")
@@ -34,60 +31,72 @@ class Solution:
         )
 
     def print(self):
-        print(self._repr("\n", "    "))
+        table = ANSITable(
+            "  unknown  ", "  solutions  ", border="thick", bordercolor="green"
+        )
+        for k, v in self.result_dict.items():
+            table.row(k, v)
+        table.print()
 
 
 @overload
 def solve(
-    unknowns: AbstractPhysicalQuantity, equations: Equation, in_place: bool = False
+    equations: Equation, solve_for: AbstractPhysicalQuantity, in_place: bool = False
 ) -> Solution:
     ...
 
 
 @overload
 def solve(
-    unknowns: Collection[AbstractPhysicalQuantity],
     equations: Collection[Equation],
+    solve_for: Collection[AbstractPhysicalQuantity],
     in_place: bool = False,
 ) -> Solution:
     ...
 
 
 def solve(
-    unknowns: Union[AbstractPhysicalQuantity, Collection[AbstractPhysicalQuantity]],
     equations: Union[Equation, Collection[Equation]],
-    in_place: bool = False
-    # domain: sympy.Set = sympy.Complexes
+    solve_for: Union[AbstractPhysicalQuantity, Collection[AbstractPhysicalQuantity]],
+    in_place: bool = False,
+    # domain: Literal["complex", "real", "integers", "naturals", "naturals0"] = "real",
 ) -> Solution:
     # normalize inputs
-    if isinstance(unknowns, AbstractPhysicalQuantity):
-        unknowns = (unknowns,)
+    if isinstance(solve_for, AbstractPhysicalQuantity):
+        solve_for = (solve_for,)
     if isinstance(equations, Equation):
         equations = (equations,)
 
-    # TODO: allow more equations than unknowns, somehow. Have to play around with linsolve
-    assert len(equations) == len(unknowns)
+    assert len(equations) >= len(
+        solve_for
+    ), "Systems with less equations than unknowns are typically unsolveable"
 
-    ukwn_syms = [ukwn.val for ukwn in unknowns]
+    ukwn_syms = [ukwn.val for ukwn in solve_for]
     val_eqns = [eqn.as_sympy_eq() for eqn in equations]
     # units_eqns = [eqn.as_units_eq_without_unknowns(unknowns) for eqn in equations]
 
     # TODO: allow arbitrary expressions to be used here and substitute symbols for the user
     for sym in ukwn_syms:
-        assert isinstance(sym, sympy.Symbol)
+        assert isinstance(sym, sympy.Expr)
 
-    results: List[sympy.Symbol] = linsolve(val_eqns, ukwn_syms)
-    # result_units = linsolve()
-    # results_typed = []
+    # treat integrals and derivatives like
+
+    # TODO: add more domains. Are there more?
+    # domain_set = {
+    #     "real": S.Reals,
+    #     "complex": S.Complexes,
+    #     "integers": S.Integers,
+    #     "naturals": S.Naturals0,
+    #     "naturals0": S.Naturals0,
+    # }
+
+    results: Dict[sympy.Expr, sympy.Expr] = sympy.solve(val_eqns, ukwn_syms)  # type: ignore
 
     if not any(results):
         raise Exception("Solving failed!")
 
     solution = Solution(
-        {
-            expr: expr.__class__(expr.units, result[0] if len(result) == 1 else result)
-            for expr, result in zip(unknowns, zip(*results))
-        }
+        {unkwn: unkwn.__class__(unkwn.units, results[unkwn.val]) for unkwn in solve_for}
     )  # type: ignore
 
     if in_place:

@@ -1,24 +1,29 @@
-from typing import Any, Tuple, Union, TypeVar, overload, Callable
+from typing import Any, Tuple, Type, Union, TypeVar, overload, Callable
 import re
 from abc import ABC
 
 import sympy
 import sympy.physics.units as su
+from sympy.physics.units.dimensions import Dimension
+from sympy.physics.units.quantities import Quantity
 from sympy.physics.units.systems.si import dimsys_SI
 from sympy.physics.units.unitsystem import UnitSystem
+from sympy.physics.vector import dynamicsymbols
+from sympy.physics.vector.printing import vlatex
 from sympy.physics.units.util import (
     quantity_simplify,
     convert_to,
 )
 
 from mathpad.equation import Equation
+from mathpad.global_options import _global_options
 
 # TODO: support numpy arrays
 Num = Union[int, float, complex]
 _UNSET = ()
 
 # this should be a classmethod, but it isn't
-_units2dimension = UnitSystem.get_default_unit_system().get_dimensional_expr
+_units2dimensional_expr = UnitSystem.get_default_unit_system().get_dimensional_expr
 
 
 class AbstractPhysicalQuantity(ABC):
@@ -26,9 +31,25 @@ class AbstractPhysicalQuantity(ABC):
 
     dimension: su.Dimension = _UNSET  # type: ignore
 
+    def __new__(
+        cls,
+        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
+        val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
+    ):
+        return super().__new__(cls)
+
     def __init_subclass__(cls):
-        assert cls.dimension is not _UNSET
+        assert (
+            str(cls) == "<class 'mathpad.physical_quantity.Unit'>"
+            or cls.dimension is not _UNSET
+        )
         super().__init_subclass__()
+    
+    def new(self: "GPhysicalQuantity", val: sympy.Expr, units: sympy.Expr = None) -> "GPhysicalQuantity":
+        "Creates a new AbstractPhysicalQuantity of the same class. if units == None; units = self.units"
+        if units == None:
+            units = self.units
+        return self.__class__(units, val)
 
     def __init__(
         self,
@@ -36,11 +57,11 @@ class AbstractPhysicalQuantity(ABC):
         val: Union[sympy.Expr, Num] = 1,
     ):
 
-        self.val = val
-        self.units: su.Quantity = quantity_simplify(units) if units != 1 else 1
+        self.val: sympy.Symbol = sympy.sympify(val)
+        self.units: su.Quantity = quantity_simplify(sympy.sympify(units))
 
-        assert not self.dimension is _UNSET
-        units_dimension = _units2dimension(self.units)
+        assert self.dimension is not _UNSET
+        units_dimension = _units2dimensional_expr(self.units)
 
         if _is_dimensionless(self.dimension) and _is_dimensionless(units_dimension):
             return
@@ -73,6 +94,27 @@ class AbstractPhysicalQuantity(ABC):
     def __repr__(self) -> str:
         return self._repr(True)
 
+    # Rich displays; Ipython etc
+    def _repr_latex_(self):
+        # use vlatex because it applies dot notation where possible
+        val_ltx = vlatex(self.val)
+        clean_val_ltx = val_ltx.replace("- 1.0 ", "-")
+        units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)
+
+        spacer_ltx = "\\hspace{1.25em}"
+        # remove '1.0's
+
+        return f"$\\displaystyle {clean_val_ltx} {spacer_ltx} {units_ltx}$"
+
+    def _repr_png_(self):
+        return self.val._repr_png_()
+
+    def _repr_svg_(self):
+        return self.val._repr_svg_()
+
+    def _repr_disabled(self):
+        return self.val._repr_disabled()
+
     def _repr(self, with_units: bool) -> str:
         # ignore 0's following last non-zero decimal
         res = re.sub(
@@ -84,6 +126,11 @@ class AbstractPhysicalQuantity(ABC):
 
         # also ignore 1*x
         res = re.sub(r"1\*", "", res)
+
+        # replace "Derivative" and "Integral" with their input equivalents
+
+        # TODO: Make derivatives and integrals easier to read
+        # res = res.replace("Derivative", "ᵈ⁄dt").replace("Integral", "∫")
 
         # do surgery to get display how we want it with very specific rules
         # not going to work for complex expressions TODO: make it
@@ -100,7 +147,7 @@ class AbstractPhysicalQuantity(ABC):
         return res
 
     def in_units(
-        self: "GPhysicalQuantity", units: Union[str, "GPhysicalQuantity"]
+        self: "GPhysicalQuantity", units: Union[str, "AbstractPhysicalQuantity"]
     ) -> "GPhysicalQuantity":
         if isinstance(units, str):
             if units == "si":
@@ -116,15 +163,53 @@ class AbstractPhysicalQuantity(ABC):
         )
         new_val = units_factor * self.val
 
-        return self.__class__(new_units, new_val)
+        return self.new(new_val, new_units)
 
-    def __add__(self: "GPhysicalQuantity", other: "Q[GPhysicalQuantity]"):
+    @overload
+    def __add__(self, other: "PhysicalQuantity") -> "PhysicalQuantity":
+        ...
+
+    @overload
+    def __add__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
+        ...
+
+    @overload
+    def __add__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
+        ...
+
+    @overload
+    def __add__(
+        self: "GPhysicalQuantity", other: "GPhysicalQuantity"
+    ) -> "GPhysicalQuantity":
+        ...
+
+    def __add__(self, other: "Q[GPhysicalQuantity]"):
         return self._sum_op(other, lambda a, b: a + b, "+", False)
 
     def __radd__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
         return self._sum_op(other, lambda a, b: b + a, "+", True)
 
-    def __sub__(self: "GPhysicalQuantity", other: "Q[GPhysicalQuantity]"):
+    @overload
+    def __sub__(
+        self: "GPhysicalQuantity", other: "PhysicalQuantity"
+    ) -> "GPhysicalQuantity":
+        ...
+
+    @overload
+    def __sub__(self, other: "GPhysicalQuantity") -> "GPhysicalQuantity":
+        ...
+
+    @overload
+    def __sub__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
+        ...
+
+    @overload
+    def __sub__(
+        self: "GPhysicalQuantity", other: "GPhysicalQuantity"
+    ) -> "GPhysicalQuantity":
+        ...
+
+    def __sub__(self, other: "Q[GPhysicalQuantity]"):
         return self._sum_op(other, lambda a, b: a - b, "-", False)
 
     def __rsub__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
@@ -143,7 +228,37 @@ class AbstractPhysicalQuantity(ABC):
 
     # because matrix multiplication has its own operator, multiplication can be commutative
     # sympy also reorders everything under the hood (alphabetically, I believe; so preserving order is pointless)
-    __rmul__ = __mul__
+
+    def __rmul__(
+        self: "GPhysicalQuantity", other: Union[Num, str]
+    ) -> "GPhysicalQuantity":
+
+        if isinstance(other, str):
+            assert (
+                self.val == 1
+            ), "Attempted to create variable with a non-unit AbstractPhysicalQuantity"
+
+            # TODO: support variables which are functions of a symbol other than t. should this be a fn() fn?
+            if "(" in other:
+                assert (
+                    other.count("(") == 1 and other.count(")") == 1 and other[-1] == ")"
+                ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x)'. Insted got {other}"
+
+                function_name, the_rest = other.split("(")
+                function_of = [x.strip() for x in the_rest[:-1].split(",")]
+                if len(function_of) == 1 and function_of[0] == "t":
+                    sym = dynamicsymbols(function_name)
+
+                else:
+                    # TODO: test this
+                    sym = sympy.Function(function_name)(function_of)
+            else:
+                sym = sympy.Symbol(other)
+
+            return self.new(sym)
+
+        else:
+            return self._prod_op(other, lambda a, b: b * a, is_pow=False)
 
     @overload
     def __truediv__(self, other: "AbstractPhysicalQuantity") -> "PhysicalQuantity":
@@ -165,20 +280,22 @@ class AbstractPhysicalQuantity(ABC):
             other.dimension
         ):
             raise DimensionalExponentError(
-                f"Exponents must always be dimensionless. [{other.dimension}: {other}]"
+                f"Exponents must always be dimensionless. Instead got {other.dimension}: {other}"
             )
         return self._prod_op(other, lambda a, b: a ** b, is_pow=True)
 
+    __xor__ = __pow__
+
     def __rpow__(self, other: Num) -> "Dimensionless":
-        if not isinstance(self, Dimensionless):
+        if not _is_dimensionless(self.dimension):
             raise DimensionalExponentError(
-                f"Exponents must always be dimensionless. [{self.dimension}: {self}]"
+                f"Exponents must always be dimensionless. Instead got {self.dimension}: {self}"
             )
-
         res = self._prod_op(other, lambda a, b: b ** a, is_pow=True)
-
         assert isinstance(res, Dimensionless)
         return res
+
+    __rxor__ = __pow__
 
     def _sum_op(
         self: "GPhysicalQuantity",
@@ -198,7 +315,9 @@ class AbstractPhysicalQuantity(ABC):
                 other if reverse else self, op_str, self if reverse else other
             )
 
-        other_units_rescale_factor = float(quantity_simplify(other_units / self.units))
+        other_units_rescale_factor = quantity_simplify(
+            convert_to(other_units, self.units) / self.units
+        )
 
         # choose the larger of the two input units as the output units
         use_other_units = other_units_rescale_factor > 1
@@ -213,7 +332,15 @@ class AbstractPhysicalQuantity(ABC):
 
         new_val = op(self_val_rescaled, other_val_rescaled)
 
-        return self.__class__(new_units, new_val)
+        res = self.new(new_val, new_units)
+
+        if _global_options.auto_simplify:
+            from mathpad.algebra import simplify
+
+            return simplify(res)
+
+        else:
+            return res
 
     def _prod_op(
         self,
@@ -234,22 +361,30 @@ class AbstractPhysicalQuantity(ABC):
             new_val = quantity_simplify(new_val)
 
         dimension_unchanged = dimsys_SI.equivalent_dims(
-            self.dimension, _units2dimension(new_units)
+            self.dimension, _units2dimensional_expr(new_units)
         )
 
         if dimension_unchanged:
-            return self.__class__(new_units, new_val)  # type: ignore
+            res = self.new(new_val, new_units)
 
         elif new_units == Dimensionless.default_units:
-            return Dimensionless(Dimensionless.default_units, new_val)  # type: ignore
+            res = Dimensionless(new_units, new_val)  # type: ignore
 
         else:
             # TODO: a big lookup table for dimensional expr -> AbstractPhysicalQuantity subclass
-            return PhysicalQuantity(new_units, new_val)  # type: ignore
+            res = PhysicalQuantity(new_units, new_val)  # type: ignore
+
+        if _global_options.auto_simplify:
+            from mathpad.algebra import simplify
+
+            return simplify(res)
+
+        else:
+            return res
 
 
 GPhysicalQuantity = TypeVar("GPhysicalQuantity", bound=AbstractPhysicalQuantity)
-Q = Union[GPhysicalQuantity, Num]
+Q = Union[GPhysicalQuantity, Num, "PhysicalQuantity"]
 
 
 class DimensionError(TypeError):
@@ -276,7 +411,8 @@ class SumDimensionsMismatch(DimensionError):
     def check(
         cls, a: AbstractPhysicalQuantity, op_str: str, b: AbstractPhysicalQuantity
     ):
-        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension):
+        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension) and \
+                not (_is_dimensionless(a.dimension) and _is_dimensionless(b.dimension)):
             raise cls(a, op_str, b)
 
 
@@ -301,31 +437,46 @@ def _is_primitive_num(x: Q[AbstractPhysicalQuantity]):
     return isinstance(x, (int, float, complex))
 
 
-class Dimensionless(AbstractPhysicalQuantity):
-    dimension = su.Dimension(1)
-    default_units = 1
+class Unit(AbstractPhysicalQuantity):
+    pass
 
 
-class PhysicalQuantity(AbstractPhysicalQuantity):
-    """A physical quantity whose dimensionality cannot be type-hinted, but will still check at runtime.
-    Subclasses `Dimensionless` for type-checking reasons; doesn't have to be dimensionless
-    """
+class Dimensionless(Unit):
 
-    dimension = None  # gets set in __init__
+    dimension = su.Dimension(1)  # type: ignore
+    default_units = sympy.sympify(1)
 
     def __new__(
         cls,
         units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
-        val: Union[sympy.Expr, Num] = 1,
+        val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
     ):
-        dimension = _units2dimension(units)
+        # measures of angle are technically dimensionless
+        assert _is_dimensionless(_units2dimensional_expr(units))
+        self = super().__new__(cls, units, val)
+        return self
 
+
+class PhysicalQuantity(AbstractPhysicalQuantity):
+    """A physical quantity whose dimensionality cannot be type-hinted, but will still check at runtime."""
+
+    dimension = None  # type: ignore # gets set in __init__
+
+    def __new__(
+        cls,
+        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
+        val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
+    ):
+        dimension = _units2dimensional_expr(units)
+
+        # catch the case when a quantity is dimensionless (ie 1 meter/meter) -
+        # class as Dimensionless for
         if _is_dimensionless(dimension):
             res = Dimensionless(units, val)
 
         else:
-            res = super().__new__(cls)
-            res.dimension = dimension
+            res = super().__new__(cls, units, val)
+            res.dimension = dimension  # type: ignore
 
         return res
 
@@ -333,16 +484,20 @@ class PhysicalQuantity(AbstractPhysicalQuantity):
 def _is_dimensionless(dimension):
     from mathpad.physical_quantities import Angle, AngularMil, SteRadian
 
+    # accepts output of units2dimensional_expr (an expression, not a dimension object); so normalize here
+    if isinstance(dimension, Dimension):
+        dimension = dimension.args[0]
+
     return (
         any(
             dimension == dim
-            for dim in {
+            for dim in [
                 1,
-                Angle.dimension,
-                Dimensionless.dimension,
-                SteRadian.dimension,
-                AngularMil.dimension
-            }
+                Angle.dimension.args[0],
+                Dimensionless.dimension.args[0],
+                SteRadian.dimension.args[0],
+                AngularMil.dimension.args[0],
+            ]
         )
         or dimsys_SI.get_dimensional_dependencies(dimension) == {}
     )
