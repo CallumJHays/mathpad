@@ -35,7 +35,7 @@ Type-hinted, simplified interface to `sympy` for solving engineering, science an
 
 ## Example
 
-A car is driving at 50 miles per hour. The driver hits the brakes,
+A car is driving at 5 miles per hour. The driver hits the brakes,
 decelerating at a rate of 2 meters per second squared. How long will the car take to come to come to a halt?
 
 ```python
@@ -45,7 +45,7 @@ t = "t" * seconds  # "t seconds"
 
 velocity = 5 * miles / hour  # "5 miles/hour"
 
-deceleration = 2 * meters / second ** 2  # "10 meters/second**2"
+deceleration = 2 * m / s ** 2  # "2 meters/second**2"
 
 solution = solve(t, t == velocity / deceleration)  
 print(solution) # "Solution(t = 1.1176 seconds)"
