@@ -25,39 +25,34 @@ def euler_lagrange(
     return diff(diff(L, ds)) + diff(L, state) == sum_non_conservative_forces
 
 
-@equation
 def impulse_momentum(
     m: Q[Mass],  # mass
     v1: Q[Velocity],  # initial velocity
     F: Q[Force],  # impulse force required
     t: Q[Time],  # impulse duration in seconds
     v2: Q[Velocity],  # final velocity
-):
+) -> Equation:
     "The force required in an instant to change an object's velocity"
     return m * v1 + integral(F, t) == m * v2
 
 
 def velocity_acceleration(
-    a: Q[Acceleration], v: Q[Velocity], t: Q[Time]  # symbol for time
-):
+    v: Q[Velocity], t: Q[Time]  # symbol for time
+) -> Acceleration:
     return a == integral(v, t)
 
 
-@equation
 def force_momentum(
-    F: Q[Force],  # resulting force
     m: Q[Mass],  # mass of object
     v: Q[Velocity],
     t: Q[Time] = t,
-):
-    return F == diff(m * v, t)
+) -> Force:
+    return diff(m * v, t)
 
 
-@equation
 def angular_momentum(
-    Ho: Q[AngularMomentum],  # Angular momentum around a unit vector
     r_p_o: Q[Length],  # unit vector of rotation axis (anti-clockwise)
     m: Q[Mass],  # mass of point object
     v: Q[Velocity],  # velocity of point object
-):
-    return Ho == r_p_o.cross(m * v)
+) -> AngularMomentum:
+    return r_p_o.cross(m * v)

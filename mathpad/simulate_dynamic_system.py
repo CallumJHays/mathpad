@@ -1,8 +1,8 @@
 from typing import Collection, Set, List, Optional, Tuple
 
+import sympy
 from sympy.core.function import Function, AppliedUndef
 from sympy import Derivative
-import sympy
 import plotly.graph_objects as go
 from sympy.utilities.lambdify import lambdify
 from scipy.integrate import RK45
@@ -23,42 +23,50 @@ def simulate_dynamic_system(
     max_step: Optional[float],
     substitute: SubstitutionMap = {},
     x_axis: AbstractPhysicalQuantity = t,
-) -> List[Tuple[float, List[float]]]:
+    display_equations: bool = True,
+    display_plots: bool = True,
+    all_solutions: bool = True,
+) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
     # TODO: support integrals
+    if max_step is None:
+        max_step = float("inf")
 
     # pre-substitute and simplify the input equations before further processing
-    sympy_eqns = [
-        simplify(subs(eqn, substitute)).as_sympy_eq() for eqn in dynamics_equations
-    ]
+    problem_eqns = [simplify(subs(eqn, substitute)) for eqn in dynamics_equations]
 
     # collect derivatives and any unspecified unkowns
     derivatives: Set[Tuple[Function, float]] = set()
 
-    for eqn in sympy_eqns:
+    for eqn in problem_eqns:
+        sympy_eqn = eqn.as_sympy_eq()
         # TODO: properly check x_axis for derivative collection (usually t)
         derivatives.update(
             {
                 (d.args[0], d.args[1][1] if isinstance(d.args[1], sympy.Tuple) else 1)
-                for d in eqn.atoms(Derivative)
+                for d in sympy_eqn.atoms(Derivative)
             }
         )
         derivatives.update(
-            {(f, 0) for f in eqn.atoms(Function) if isinstance(f, AppliedUndef)}
+            {(f, 0) for f in sympy_eqn.atoms(Function) if isinstance(f, AppliedUndef)}
         )
 
     highest_derivatives = {}
     lowest_derivatives = {}
     for f, lvl in derivatives:
+
         if f in highest_derivatives:
             if highest_derivatives[f] < lvl:
-                lowest_derivatives[f] = highest_derivatives[f]
                 highest_derivatives[f] = lvl
-            else:
-                lowest_derivatives[f] = lvl
         else:
             highest_derivatives[f] = lvl
+
+        if f in lowest_derivatives:
+            if lowest_derivatives[f] > lvl:
+                lowest_derivatives[f] = lvl
+        else:
+            lowest_derivatives[f] = lvl
 
     solve_for_highest_derivatives = [
         fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
@@ -69,9 +77,20 @@ def simulate_dynamic_system(
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    solutions = sympy.solve(sympy_eqns, solve_for_highest_derivatives, dict=True)
+    if display_equations:
+        print("Solving Equations:")
+        for eqn in problem_eqns:
+            display(eqn)
+
+    solutions = sympy.solve(
+        [eqn.as_sympy_eq() for eqn in problem_eqns],
+        solve_for_highest_derivatives,
+        dict=True,
+    )
 
     assert any(solutions), "sympy solving failed!"
+
+    all_data = []
 
     for solution_idx, solution in enumerate(solutions):
 
@@ -156,16 +175,24 @@ def simulate_dynamic_system(
                 print(f"integration completed with failed status: {msg}")
                 break
 
-        display(
-            go.Figure(
-                [
-                    go.Scatter(
-                        x=[t for t, _ in data],
-                        y=[frame[idx] for _, frame in data],
-                        name=str(sym),
-                    )
-                    for idx, sym in enumerate(record)
-                ],
-                layout=dict(title=f"Solution #{solution_idx + 1}"),
+        if display_plots:
+            display(
+                go.Figure(
+                    [
+                        go.Scatter(
+                            x=[t for t, _ in data],
+                            y=[frame[idx] for _, frame in data],
+                            name=str(sym),
+                        )
+                        for idx, sym in enumerate(record)
+                    ],
+                    layout=dict(title=f"Solution #{solution_idx + 1}"),
+                )
             )
-        )
+
+        all_data.extend(data)
+
+        if not all_solutions:
+            break
+
+    return all_data

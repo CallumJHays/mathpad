@@ -5,7 +5,7 @@ from .physical_quantities import *
 
 from .units import *
 from .solve import solve, Solution
-from .equation import equation, Equation
+from .equation import Equation
 from ._quality_of_life import t, g, pi, frac
 from .algebra import subs, simplify, factor, expand
 from .display import tabulate

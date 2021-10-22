@@ -3,7 +3,6 @@
 from mathpad import *
 
 
-@equation
 def resistance_resistivity(
     *,
     R: Q[Impedance],  # resistance
