@@ -26,6 +26,7 @@ def simulate_dynamic_system(
     display_equations: bool = True,
     display_plots: bool = True,
     all_solutions: bool = True,
+    interactive_plots: bool = True,
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
@@ -176,19 +177,17 @@ def simulate_dynamic_system(
                 break
 
         if display_plots:
-            display(
-                go.Figure(
-                    [
-                        go.Scatter(
-                            x=[t for t, _ in data],
-                            y=[frame[idx] for _, frame in data],
-                            name=str(sym),
-                        )
-                        for idx, sym in enumerate(record)
-                    ],
-                    layout=dict(title=f"Solution #{solution_idx + 1}"),
-                )
-            )
+            go.Figure(
+                [
+                    go.Scatter(
+                        x=[t for t, _ in data],
+                        y=[frame[idx] for _, frame in data],
+                        name=str(sym),
+                    )
+                    for idx, sym in enumerate(record)
+                ],
+                layout=dict(title=f"Solution #{solution_idx + 1}"),
+            ).show(None if interactive_plots else "svg")
 
         all_data.extend(data)
 
