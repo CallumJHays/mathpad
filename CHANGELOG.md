@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.5 (2021-10-23)
+### Fix
+* Actually plot more illuminating values ([`413fea5`](https://github.com/CallumJHays/mathpad/commit/413fea5185345bb4481b2095a397be8a0ced11cd))
+* Plot more illuminating values ([`987bbd4`](https://github.com/CallumJHays/mathpad/commit/987bbd4d80cae10960b98c7348168f5b3c2c79cd))
+* Simulate_dynamic_system integration step order ([`6d666df`](https://github.com/CallumJHays/mathpad/commit/6d666df504e1a6e6a5313f78a3502777f5f1c850))
+
 ## v0.1.4 (2021-10-22)
 ### Fix
 * Make example plots non-interactive so they display on github ([`9fd9a76`](https://github.com/CallumJHays/mathpad/commit/9fd9a760b37323efb167fdbd80b6285e552d266f))
