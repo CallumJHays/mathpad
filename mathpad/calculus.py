@@ -12,33 +12,31 @@ AnyQty = Q[AbstractPhysicalQuantity]
 
 @overload
 def diff(
-    pqty: AnyQty, wrt: AbstractPhysicalQuantity = t, n: int = 1
+    pqty: AnyQty, n: int = 1, *, wrt: AbstractPhysicalQuantity = t
 ) -> PhysicalQuantity:
     ...
 
 
 @overload
 def diff(
-    pqty: Iterable[AnyQty], wrt: AbstractPhysicalQuantity = t, n: int = 1
+    pqty: Iterable[AnyQty], n: int = 1, *, wrt: AbstractPhysicalQuantity = t
 ) -> List[PhysicalQuantity]:
     ...
 
 
 def diff(
     pqty: Union[AnyQty, Iterable[AnyQty]],
-    wrt: AbstractPhysicalQuantity = t,
-    n: int = 1
+    n: int = 1,
+    *,
+    wrt: AbstractPhysicalQuantity = t
 ) -> Union[PhysicalQuantity, List[PhysicalQuantity]]:
-
-    if n > 1:
-        pqty = diff(pqty, wrt=wrt, n=n-1)
 
     if isinstance(pqty, list):
         return [diff(pq, wrt=wrt, n=n) for pq in pqty]
 
     else:
         res = PhysicalQuantity(
-            pqty.units / wrt.units, pqty.val.diff(wrt.val)  # type: ignore
+            pqty.units / wrt.units, pqty.val.diff((wrt.val, n))  # type: ignore
         )
 
         if _global_options.auto_simplify:

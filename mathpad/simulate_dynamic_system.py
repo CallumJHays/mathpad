@@ -1,6 +1,8 @@
 from typing import Collection, Set, List, Optional, Tuple
+from itertools import zip_longest
 
 import sympy
+import numpy as np
 from sympy.core.function import Function, AppliedUndef
 from sympy import Derivative
 import plotly.graph_objects as go
@@ -12,6 +14,7 @@ from mathpad.physical_quantity import AbstractPhysicalQuantity
 from mathpad.equation import Equation
 from mathpad.algebra import subs, SubstitutionMap, simplify
 from mathpad._quality_of_life import t
+from tqdm.notebook import tqdm
 
 
 def simulate_dynamic_system(
@@ -23,12 +26,16 @@ def simulate_dynamic_system(
     max_step: Optional[float],
     substitute: SubstitutionMap = {},
     x_axis: AbstractPhysicalQuantity = t,
-    display_equations: bool = True,
+    display_equations: bool = False,
     display_plots: bool = True,
+    display_progress_bar: bool = True,
     all_solutions: bool = True,
     interactive_plots: bool = True,
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
+
+    # TODO: support plotting on separate axes, and subplots
+    # TODO: ensure we aren't subbing out something that is required for a 'record' output
 
     # TODO: support integrals
     if max_step is None:
@@ -83,6 +90,9 @@ def simulate_dynamic_system(
         for eqn in problem_eqns:
             display(eqn)
 
+        print("For values:")
+        display(solve_for)
+
     solutions = sympy.solve(
         [eqn.as_sympy_eq() for eqn in problem_eqns],
         solve_for_highest_derivatives,
@@ -115,37 +125,47 @@ def simulate_dynamic_system(
             unknowns
         ), f"Cannot simulate ODE in the prescence of unknowns: {unknowns}. Please include them in substitutions"
 
-        inputs = []
-        not_lowest_derivative_list = []
+        input_unzipped = []
 
         for fn, lowest_lvl in lowest_derivatives.items():
             highest_lvl = highest_derivatives[fn]
-            not_lowest_derivative_list.append(False)
-            not_lowest_derivative_list.extend([True] * (highest_lvl - lowest_lvl - 1))
-            inputs.extend(
+            input_unzipped.append(
                 [
                     fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
                     for lvl in range(lowest_lvl, highest_lvl)
                 ]
             )
 
+        # inputs are lowest to highest derivatives excluding the highest, ie [x, y, dx, dy]
+        inputs = [
+            deriv
+            for derivatives in zip_longest(*input_unzipped)
+            for deriv in derivatives
+            if deriv is not None
+        ]
+
+        # outputs are highest of input derviatives plus recorded data
+        # ie [dddx, record[0], record[1]]
         lambdified = lambdify([x_axis.val, inputs], solution_vec)
 
         data = []
 
-        n_unique_derivatives = len(solve_for_highest_derivatives)
+        n_unique_derivatives = len(highest_derivatives)
 
-        def step(x, state):
+        # define this integration function to record data and let outputs = diff(inputs)
+        def step(x: float, state: np.ndarray):
+
             output = lambdified(x, state)
-            highest_derivatives = output[:n_unique_derivatives]
-            data.append((x, output[n_unique_derivatives:]))
 
-            res = [
-                s
-                for s, not_lowest_derivative in zip(state, not_lowest_derivative_list)
-                if not_lowest_derivative
-            ] + highest_derivatives
-            return res
+            highest_derivatives, recorded_data = (
+                output[:n_unique_derivatives],
+                output[n_unique_derivatives:],
+            )
+
+            data.append((x, recorded_data))
+
+            dstate = np.append(state[n_unique_derivatives:], highest_derivatives)
+            return dstate
 
         # normalize and check initial conditions
         y0 = []
@@ -157,7 +177,9 @@ def simulate_dynamic_system(
                 if hash(pqty) == sym_hash:
                     break
             else:
-                assert False
+                assert (
+                    sym in initial_conditions
+                ), f"Required initial condition missing: {sym}"
 
             replacement = initial_conditions[pqty]
             if isinstance(replacement, AbstractPhysicalQuantity):
@@ -169,12 +191,24 @@ def simulate_dynamic_system(
 
         integrator = RK45(step, t0=0, y0=y0, t_bound=x_f, max_step=max_step)
 
-        while integrator.status == "running":
-            msg = integrator.step()
+        print("Solving finished. Simulating...")
 
-            if integrator.status == "failed":
-                print(f"integration completed with failed status: {msg}")
-                break
+        t_prev = 0
+
+        with tqdm(total=x_f, leave=False) if display_progress_bar else None as pbar:
+            while integrator.status == "running":
+                msg = integrator.step()
+
+                if integrator.status == "failed":
+                    print(f"integration completed with failed status: {msg}")
+                    break
+
+                if pbar:
+                    dt = integrator.t - t_prev
+                    pbar.update(dt)
+                    t_prev = integrator.t
+
+        print("Simulation finished. Plotting...")
 
         if display_plots:
             go.Figure(

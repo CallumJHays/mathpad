@@ -10,9 +10,15 @@ from ._quality_of_life import t, g, pi, frac
 from .algebra import subs, simplify, factor, expand
 from .display import tabulate
 
+from .functions import piecewise, sqrt
 from .calculus import diff, integral
-from .trigonometry import cos, sin, tan
+from .trigonometry import cos, sin, tan, magnitude, hypotenuse
 from .simulate_dynamic_system import simulate_dynamic_system
+
+try:
+    from IPython.display import display
+except ImportError:
+    pass
 
 
 sympy.init_printing()  # type: ignore

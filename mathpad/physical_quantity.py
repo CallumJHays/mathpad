@@ -44,8 +44,10 @@ class AbstractPhysicalQuantity(ABC):
             or cls.dimension is not _UNSET
         )
         super().__init_subclass__()
-    
-    def new(self: "GPhysicalQuantity", val: sympy.Expr, units: sympy.Expr = None) -> "GPhysicalQuantity":
+
+    def new(
+        self: "GPhysicalQuantity", val: sympy.Expr, units: sympy.Expr = None
+    ) -> "GPhysicalQuantity":
         "Creates a new AbstractPhysicalQuantity of the same class. if units == None; units = self.units"
         if units == None:
             units = self.units
@@ -211,6 +213,9 @@ class AbstractPhysicalQuantity(ABC):
 
     def __sub__(self, other: "Q[GPhysicalQuantity]"):
         return self._sum_op(other, lambda a, b: a - b, "-", False)
+
+    def __neg__(self):
+        return self.new(-self.val)  # type: ignore
 
     def __rsub__(self: "GPhysicalQuantity", other: Num) -> "GPhysicalQuantity":
         return self._sum_op(other, lambda a, b: b - a, "-", True)
@@ -411,8 +416,9 @@ class SumDimensionsMismatch(DimensionError):
     def check(
         cls, a: AbstractPhysicalQuantity, op_str: str, b: AbstractPhysicalQuantity
     ):
-        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension) and \
-                not (_is_dimensionless(a.dimension) and _is_dimensionless(b.dimension)):
+        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension) and not (
+            _is_dimensionless(a.dimension) and _is_dimensionless(b.dimension)
+        ):
             raise cls(a, op_str, b)
 
 

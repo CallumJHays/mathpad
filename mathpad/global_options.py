@@ -1,7 +1,7 @@
-from typing import Optional, NamedTuple
+from typing import Optional
 
 
-class _GlobalOptions(NamedTuple):
+class _GlobalOptions:
     auto_simplify: bool = True
 
 
