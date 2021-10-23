@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.4 (2021-10-22)
+### Fix
+* Make example plots non-interactive so they display on github ([`9fd9a76`](https://github.com/CallumJHays/mathpad/commit/9fd9a760b37323efb167fdbd80b6285e552d266f))
+
 ## v0.1.3 (2021-10-22)
 ### Fix
 * Remove @equation ([`d140be5`](https://github.com/CallumJHays/mathpad/commit/d140be505b8f878fad9e07bcba76585991c13328))
