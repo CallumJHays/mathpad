@@ -1,12 +1,12 @@
 from typing import Union, overload, Dict
 import sympy
 
-from mathpad.physical_quantity import GPhysicalQuantity, AbstractPhysicalQuantity, Q
+from mathpad.val import GOutputVal, Val, Q
 from mathpad.equation import Equation
 
 
 @overload
-def simplify(expr_or_eqn: GPhysicalQuantity) -> GPhysicalQuantity:
+def simplify(expr_or_eqn: GOutputVal) -> GOutputVal:
     ...
 
 
@@ -16,8 +16,8 @@ def simplify(expr_or_eqn: Equation) -> Equation:
 
 
 def simplify(
-    expr_or_eqn: Union[GPhysicalQuantity, Equation]
-) -> Union[GPhysicalQuantity, Equation]:
+    expr_or_eqn: Union[GOutputVal, Equation]
+) -> Union[GOutputVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(simplify(expr_or_eqn.lhs), simplify(expr_or_eqn.rhs))
@@ -27,7 +27,7 @@ def simplify(
 
 
 @overload
-def factor(expr_or_eqn: GPhysicalQuantity) -> GPhysicalQuantity:
+def factor(expr_or_eqn: GOutputVal) -> GOutputVal:
     ...
 
 
@@ -37,8 +37,8 @@ def factor(expr_or_eqn: Equation) -> Equation:
 
 
 def factor(
-    expr_or_eqn: Union[GPhysicalQuantity, Equation]
-) -> Union[GPhysicalQuantity, Equation]:
+    expr_or_eqn: Union[GOutputVal, Equation]
+) -> Union[GOutputVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(factor(expr_or_eqn.lhs), factor(expr_or_eqn.rhs))
@@ -48,7 +48,7 @@ def factor(
 
 
 @overload
-def expand(expr_or_eqn: GPhysicalQuantity) -> GPhysicalQuantity:
+def expand(expr_or_eqn: GOutputVal) -> GOutputVal:
     ...
 
 
@@ -58,8 +58,8 @@ def expand(expr_or_eqn: Equation) -> Equation:
 
 
 def expand(
-    expr_or_eqn: Union[GPhysicalQuantity, Equation]
-) -> Union[GPhysicalQuantity, Equation]:
+    expr_or_eqn: Union[GOutputVal, Equation]
+) -> Union[GOutputVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(expand(expr_or_eqn.lhs), expand(expr_or_eqn.rhs))
@@ -68,13 +68,13 @@ def expand(
         return expr_or_eqn.new(sympy.expand(expr_or_eqn.val))
 
 
-SubstitutionMap = Dict[AbstractPhysicalQuantity, Q[AbstractPhysicalQuantity]]
+SubstitutionMap = Dict[Val, Q[Val]]
 
 
 @overload
 def subs(
-    expr_or_eqn: GPhysicalQuantity, substitutions: SubstitutionMap
-) -> GPhysicalQuantity:
+    expr_or_eqn: GOutputVal, substitutions: SubstitutionMap
+) -> GOutputVal:
     ...
 
 
@@ -84,9 +84,9 @@ def subs(expr_or_eqn: Equation, substitutions: SubstitutionMap) -> Equation:
 
 
 def subs(
-    expr_or_eqn: Union[GPhysicalQuantity, Equation],
+    expr_or_eqn: Union[GOutputVal, Equation],
     substitutions: SubstitutionMap,
-) -> Union[GPhysicalQuantity, Equation]:
+) -> Union[GOutputVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         return Equation(
             subs(expr_or_eqn.lhs, substitutions),
@@ -97,7 +97,7 @@ def subs(
         sympy_subsmap = {}
 
         for from_, to in substitutions.items():
-            if not isinstance(to, AbstractPhysicalQuantity):
+            if not isinstance(to, Val):
                 to = from_.__class__(from_.units, to)
 
             sympy_subsmap[from_.val] = to.in_units(from_).val

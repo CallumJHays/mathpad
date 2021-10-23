@@ -1,19 +1,19 @@
 import sympy
 
-from .physical_quantity import *
-from .physical_quantities import *
+from mathpad.val import *
+from mathpad.units import *
 
-from .units import *
-from .solve import solve, Solution
-from .equation import Equation
-from ._quality_of_life import t, g, pi, frac
-from .algebra import subs, simplify, factor, expand
-from .display import tabulate
+from mathpad.units import *
+from mathpad.solve import solve, Solution
+from mathpad.equation import Equation
+from mathpad._quality_of_life import t, g, pi, frac
+from mathpad.algebra import subs, simplify, factor, expand
+from mathpad.display import tabulate
 
-from .functions import piecewise, sqrt
-from .calculus import diff, integral
-from .trigonometry import cos, sin, tan, magnitude, hypotenuse
-from .simulate_dynamic_system import simulate_dynamic_system
+from mathpad.functions import piecewise, sqrt
+from mathpad.calculus import diff, integral
+from mathpad.trigonometry import cos, sin, tan, magnitude, hypotenuse
+from mathpad.simulate_dynamic_system import simulate_dynamic_system
 
 try:
     from IPython.display import display

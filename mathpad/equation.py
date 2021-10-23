@@ -3,15 +3,15 @@ import sympy
 from sympy.physics.vector.printing import vlatex
 
 if TYPE_CHECKING:
-    from mathpad.physical_quantity import GPhysicalQuantity, Q
+    from mathpad.val import GOutputVal, Q
 
 
 class Equation:
-    def __init__(self, lhs: "Q[GPhysicalQuantity]", rhs: "Q[GPhysicalQuantity]"):
-        from mathpad.physical_quantity import AbstractPhysicalQuantity
+    def __init__(self, lhs: "Q[GOutputVal]", rhs: "Q[GOutputVal]"):
+        from mathpad.val import Val
 
-        lhs_is_pqty = isinstance(lhs, AbstractPhysicalQuantity)
-        rhs_is_pqty = isinstance(rhs, AbstractPhysicalQuantity)
+        lhs_is_pqty = isinstance(lhs, Val)
+        rhs_is_pqty = isinstance(rhs, Val)
 
         assert lhs_is_pqty or rhs_is_pqty
 
@@ -24,12 +24,8 @@ class Equation:
             # sanity check
             assert lhs.units == self.units == rhs.units
 
-        self.lhs: AbstractPhysicalQuantity = (
-            lhs if lhs_is_pqty else pqty_cls(self.units, rhs)
-        )
-        self.rhs: AbstractPhysicalQuantity = (
-            rhs if rhs_is_pqty else pqty_cls(self.units, rhs)
-        )
+        self.lhs: Val = lhs if lhs_is_pqty else pqty_cls(self.units, rhs)
+        self.rhs: Val = rhs if rhs_is_pqty else pqty_cls(self.units, rhs)
 
     def __repr__(self):
         return f"{self.lhs._repr(False)} = {self.rhs._repr(False)} {self.units}"
@@ -37,24 +33,20 @@ class Equation:
     def as_sympy_eq(self) -> sympy.Equality:
         return sympy.Equality(self.lhs.val, self.rhs.val)  # type: ignore
 
-    # def as_units_eq_without_unknowns(self, unknowns: Collection[PhysicalQuantity]):
+    # def as_units_eq_without_unknowns(self, unknowns: Collection[OutputVal]):
     #     return sympy.Equality(self.lhs.units, self.rhs.units)
 
     # Rich displays; Ipython etc
     def _repr_latex_(self):
-        from mathpad.physical_quantity import AbstractPhysicalQuantity
+        from mathpad.val import Val
 
         # use vlatex because it applies dot notation where possible
         lhs_ltx = (
-            vlatex(self.lhs.val)
-            if isinstance(self.lhs, AbstractPhysicalQuantity)
-            else str(self.lhs)
+            vlatex(self.lhs.val) if isinstance(self.lhs, Val) else str(self.lhs)
         ).replace("- 1.0 ", "-")
 
         rhs_ltx = (
-            vlatex(self.rhs.val)
-            if isinstance(self.rhs, AbstractPhysicalQuantity)
-            else str(self.rhs)
+            vlatex(self.rhs.val) if isinstance(self.rhs, Val) else str(self.rhs)
         ).replace("- 1.0 ", "-")
 
         units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)

@@ -4,8 +4,8 @@ import sympy.physics.units.definitions as u
 from sympy.physics.units.quantities import Quantity
 from sympy.physics.units.systems.si import dimsys_SI
 
-from mathpad.physical_quantity import AbstractPhysicalQuantity
-import mathpad.physical_quantities as dims
+from mathpad.val import Val
+import mathpad.dimensions as dims
 
 HERE = os.path.dirname(__file__)
 
@@ -33,7 +33,7 @@ with open(f"{HERE}/units.py", "w") as units_f, open(
         if name.endswith("constant"):
             constants_f.write(
                 f"""
-{name} = PhysicalQuantity(u.{name})"""
+{name} = OutputVal(u.{name})"""
             )
 
         elif isinstance(qty, Quantity):
@@ -54,8 +54,8 @@ with open(f"{HERE}/units.py", "w") as units_f, open(
 
                 elif (
                     isinstance(quantity_cls, type)
-                    and issubclass(quantity_cls, AbstractPhysicalQuantity)
-                    and quantity_cls is not AbstractPhysicalQuantity
+                    and issubclass(quantity_cls, Val)
+                    and quantity_cls is not Val
                     and dimsys_SI.equivalent_dims(qty.dimension, quantity_cls.dimension)
                 ):
                     units_f.write(

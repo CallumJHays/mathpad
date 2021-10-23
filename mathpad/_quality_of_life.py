@@ -1,7 +1,7 @@
 import sympy
 
 from mathpad.units import seconds, meters, second, radians
-from mathpad.physical_quantities import Angle
+from mathpad.dimensions import Angle
 
 t = "t" * seconds
 g = 9.81 * meters / second ** 2

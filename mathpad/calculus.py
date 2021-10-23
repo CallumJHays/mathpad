@@ -1,5 +1,5 @@
 from typing import Iterable, List, Union, overload
-from mathpad.physical_quantity import AbstractPhysicalQuantity, PhysicalQuantity, Q
+from mathpad.val import Val, OutputVal, Q
 from mathpad import t
 from mathpad.global_options import _global_options
 from mathpad.algebra import simplify
@@ -7,35 +7,26 @@ import sympy
 
 # TODO: prescale values and units
 
-AnyQty = Q[AbstractPhysicalQuantity]
-
 
 @overload
-def diff(
-    pqty: AnyQty, n: int = 1, *, wrt: AbstractPhysicalQuantity = t
-) -> PhysicalQuantity:
+def diff(pqty: Q[Val], n: int = 1, *, wrt: Val = t) -> OutputVal:
     ...
 
 
 @overload
-def diff(
-    pqty: Iterable[AnyQty], n: int = 1, *, wrt: AbstractPhysicalQuantity = t
-) -> List[PhysicalQuantity]:
+def diff(pqty: Iterable[Q[Val]], n: int = 1, *, wrt: Val = t) -> List[OutputVal]:
     ...
 
 
 def diff(
-    pqty: Union[AnyQty, Iterable[AnyQty]],
-    n: int = 1,
-    *,
-    wrt: AbstractPhysicalQuantity = t
-) -> Union[PhysicalQuantity, List[PhysicalQuantity]]:
+    pqty: Union[Q[Val], Iterable[Q[Val]]], n: int = 1, *, wrt: Val = t
+) -> Union[OutputVal, List[OutputVal]]:
 
     if isinstance(pqty, list):
         return [diff(pq, wrt=wrt, n=n) for pq in pqty]
 
     else:
-        res = PhysicalQuantity(
+        res = OutputVal(
             pqty.units / wrt.units, pqty.val.diff((wrt.val, n))  # type: ignore
         )
 
@@ -45,10 +36,8 @@ def diff(
         return res
 
 
-def integral(
-    pqty: AbstractPhysicalQuantity, wrt: AbstractPhysicalQuantity = t
-) -> PhysicalQuantity:
-    res = PhysicalQuantity(
+def integral(pqty: Val, wrt: Val = t) -> OutputVal:
+    res = OutputVal(
         pqty.units * wrt.units, sympy.integrate(pqty.val, wrt.val)  # type: ignore
     )
 

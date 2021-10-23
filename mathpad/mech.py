@@ -18,7 +18,7 @@ def euler_lagrange(
     sum_kinetic_energy: Q[Energy],
     sum_potential_energy: Q[Energy],
     sum_non_conservative_forces: Q[Force],
-    state: AbstractPhysicalQuantity,
+    state: Val,
 ) -> Equation:
     L = sum_kinetic_energy - sum_potential_energy
     ds = diff(state)

@@ -9,8 +9,9 @@ import plotly.graph_objects as go
 from sympy.utilities.lambdify import lambdify
 from scipy.integrate import RK45
 from IPython.display import display
+import plotly.io as pio
 
-from mathpad.physical_quantity import AbstractPhysicalQuantity
+from mathpad.val import Val
 from mathpad.equation import Equation
 from mathpad.algebra import subs, SubstitutionMap, simplify
 from mathpad._quality_of_life import t
@@ -22,17 +23,34 @@ def simulate_dynamic_system(
     *,
     x_f: float,
     initial_conditions: SubstitutionMap,
-    record: List[AbstractPhysicalQuantity],
+    record: List[Val],
     max_step: Optional[float],
     substitute: SubstitutionMap = {},
-    x_axis: AbstractPhysicalQuantity = t,
-    display_equations: bool = False,
+    x_axis: Val = t,
+    all_solutions: bool = False,
+    # output display options
+    verbose: bool = True,
     display_plots: bool = True,
     display_progress_bar: bool = True,
-    all_solutions: bool = True,
-    interactive_plots: bool = True,
+    display_original_equations: bool = False,
+    display_subbed_equations: bool = False,
+    # plot formatting (display_plots=True)
+    plot_static: bool = False,
+    plot_static_figsize: Tuple[int, int] = (960, 400),
+    plot_title: str = "Solution #{solutionNo}",
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
+
+    if plot_static_figsize and not plot_static:
+        print(
+            "Warning: plot_static_figsize was set but plot_static was not enabled. Enabling for you automatically. Set plot_static=True to "
+        )
+
+    # make static renderings a certain size, the default one is too square for my liking
+    svg_renderer = pio.renderers["svg"]
+    width, height = plot_static_figsize
+    svg_renderer.width = width
+    svg_renderer.height = height
 
     # TODO: support plotting on separate axes, and subplots
     # TODO: ensure we aren't subbing out something that is required for a 'record' output
@@ -40,6 +58,11 @@ def simulate_dynamic_system(
     # TODO: support integrals
     if max_step is None:
         max_step = float("inf")
+
+    if display_original_equations:
+        print("Using Input Equations:")
+        for eqn in dynamics_equations:
+            display(eqn)
 
     # pre-substitute and simplify the input equations before further processing
     problem_eqns = [simplify(subs(eqn, substitute)) for eqn in dynamics_equations]
@@ -85,8 +108,11 @@ def simulate_dynamic_system(
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    if display_equations:
-        print("Solving Equations:")
+    _print_if(
+        verbose, f"Solving subbed Equations{':' if display_subbed_equations else ''}"
+    )
+
+    if display_subbed_equations:
         for eqn in problem_eqns:
             display(eqn)
 
@@ -182,7 +208,7 @@ def simulate_dynamic_system(
                 ), f"Required initial condition missing: {sym}"
 
             replacement = initial_conditions[pqty]
-            if isinstance(replacement, AbstractPhysicalQuantity):
+            if isinstance(replacement, Val):
                 val = float(replacement.in_units(pqty).val)
             else:
                 val = replacement
@@ -191,7 +217,7 @@ def simulate_dynamic_system(
 
         integrator = RK45(step, t0=0, y0=y0, t_bound=x_f, max_step=max_step)
 
-        print("Solving finished. Simulating...")
+        _print_if(verbose, "Solving finished. Simulating...")
 
         t_prev = 0
 
@@ -208,7 +234,7 @@ def simulate_dynamic_system(
                     pbar.update(dt)
                     t_prev = integrator.t
 
-        print("Simulation finished. Plotting...")
+        _print_if(verbose, "Simulation finished. Plotting...")
 
         if display_plots:
             go.Figure(
@@ -220,8 +246,19 @@ def simulate_dynamic_system(
                     )
                     for idx, sym in enumerate(record)
                 ],
-                layout=dict(title=f"Solution #{solution_idx + 1}"),
-            ).show(None if interactive_plots else "svg")
+                layout={
+                    "xaxis": {
+                        "title": str(x_axis)
+                    },
+                    "title": {
+                        "text": plot_title.format(solutionNo=solution_idx + 1),
+                        "y": 0.9,
+                        "x": 0.5,
+                        "xanchor": "center",
+                        "yanchor": "top",
+                    }
+                },
+            ).show("svg" if plot_static else None)
 
         all_data.extend(data)
 
@@ -229,3 +266,8 @@ def simulate_dynamic_system(
             break
 
     return all_data
+
+
+def _print_if(condition: bool, msg: str):
+    if condition:
+        print(msg)

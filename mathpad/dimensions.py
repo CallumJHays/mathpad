@@ -1,7 +1,7 @@
 import sympy.physics.units.definitions as u
 import sympy.physics.units.definitions.dimension_definitions as d
 
-from mathpad.physical_quantity import Unit, Dimensionless
+from mathpad.val import Unit, Dimensionless
 
 # TODO: rearrange in alphabetical order
 
