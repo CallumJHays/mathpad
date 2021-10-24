@@ -107,6 +107,7 @@ def simulate_dynamic_system(
     solve_for_highest_derivatives = [
         fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
         for fn, lvl in highest_derivatives.items()
+        if not lvl == lowest_derivatives[fn]
     ]
 
     solve_for_recorded_data = [val.val for val in record]
@@ -124,7 +125,7 @@ def simulate_dynamic_system(
 
     solutions = sympy.solve(
         [eqn.as_sympy_eq() for eqn in problem_eqns],
-        solve_for_highest_derivatives,
+        solve_for,
         dict=True,
     )
 
@@ -166,8 +167,16 @@ def simulate_dynamic_system(
 
         input_unzipped = []
 
+        n_unique_derivatives = 0
+
         for fn, lowest_lvl in lowest_derivatives.items():
             highest_lvl = highest_derivatives[fn]
+
+            if lowest_lvl == highest_lvl:
+                continue
+            
+            n_unique_derivatives += 1
+
             input_unzipped.append(
                 [
                     fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
@@ -188,8 +197,6 @@ def simulate_dynamic_system(
         lambdified = lambdify([x_axis.val, inputs], solution_vec)
 
         data = []
-
-        n_unique_derivatives = len(highest_derivatives)
 
         # define this integration function to record data and let outputs = diff(inputs)
         def step(x: float, state: np.ndarray):

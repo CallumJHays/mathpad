@@ -2,10 +2,10 @@ from typing import Generic, Sequence
 from sympy.physics.vector import vlatex
 
 from mathpad.val import GenericVal, Q, Val
-from mathpad.units import meters
 from mathpad._quality_of_life import t
 from mathpad.trigonometry import magnitude
 from mathpad.calculus import diff
+from mathpad.algebra import SubstitutionMap, subs
 
 # TODO: use sympy.physics.vector.ReferenceFrame
 
@@ -43,6 +43,13 @@ class Vec3(Generic[GenericVal], Sequence):
 
     def __len__(self):
         return 3
+    
+    def subs(self, substitutions: SubstitutionMap):
+        return Vec3(
+            i=subs(self.i, substitutions),
+            j=subs(self.j, substitutions),
+            k=subs(self.k, substitutions)
+        )
 
     def dot(self, other: "Vec3"):
         ai, aj, ak = self
