@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.9 (2021-10-24)
+### Fix
+* Patch to avoid bug ([`e11579b`](https://github.com/CallumJHays/mathpad/commit/e11579bf0e48de8f09d068d7154480aca98f3fa9))
+
 ## v0.1.8 (2021-10-24)
 ### Fix
 * Commit dist directory for python-semtantic-release ([`2f1b2ed`](https://github.com/CallumJHays/mathpad/commit/2f1b2ed85580182f4d9f91f226f737e5b1a8214b))
