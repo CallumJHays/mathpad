@@ -31,6 +31,7 @@ tqdm = "^4.62.3"
 ansitable = "^0.9.6"
 scipy = "^1.7.1"
 plotly = "^5.3.1"
+kaleido = "0.2.1"
 
 
 [build-system]
@@ -48,7 +49,6 @@ pre-commit = "^2.13.0"
 ipykernel = "^6.4.1"
 nbformat = "^5.1.3"
 ipywidgets = "^7.6.5"
-kaleido = "0.2.1"
 jupyterlab = "^3.2.1"
 
 [tool.semantic_release]
