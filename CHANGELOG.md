@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.6 (2021-10-24)
+### Fix
+* Simulate_dynamic_system bug ([`1c9bb3e`](https://github.com/CallumJHays/mathpad/commit/1c9bb3e132001e0cac7640f1e5d4cdd124ee962e))
+* Trigger release ([`0f0654d`](https://github.com/CallumJHays/mathpad/commit/0f0654da2d858372491e97c77809fa1a624757c5))
+
 ## v0.1.5 (2021-10-23)
 ### Fix
 * Actually plot more illuminating values ([`413fea5`](https://github.com/CallumJHays/mathpad/commit/413fea5185345bb4481b2095a397be8a0ced11cd))
