@@ -47,7 +47,7 @@ velocity = 5 * miles / hour  # "5 miles/hour"
 
 deceleration = 2 * m / s ** 2  # "2 meters/second**2"
 
-solution = solve(t, t == velocity / deceleration)  
+solution = solve(t, t == velocity / deceleration)
 print(solution) # "Solution(t = 1.1176 seconds)"
 ```
 
@@ -59,9 +59,9 @@ Install via pip:
 
 `pip install mathpad`
 
-## Contributors ✨
+<!-- ## Contributors ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)): -->
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -71,7 +71,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+<!-- This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome! -->
 
 ## Credits
 
