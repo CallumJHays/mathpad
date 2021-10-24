@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.8 (2021-10-24)
+### Fix
+* Commit dist directory for python-semtantic-release ([`2f1b2ed`](https://github.com/CallumJHays/mathpad/commit/2f1b2ed85580182f4d9f91f226f737e5b1a8214b))
+
 ## v0.1.7 (2021-10-24)
 ### Fix
 * Move kaleido to dev-dependency ([`14f759e`](https://github.com/CallumJHays/mathpad/commit/14f759e017e535007b1089cf78432fa9b63acc0a))
