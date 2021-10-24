@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.10 (2021-10-24)
+### Fix
+* Re-add kaleido as a dependency ([`c3cb26d`](https://github.com/CallumJHays/mathpad/commit/c3cb26d3af320fdc2ac27569815424b455c74edb))
+
 ## v0.1.9 (2021-10-24)
 ### Fix
 * Patch to avoid bug ([`e11579b`](https://github.com/CallumJHays/mathpad/commit/e11579bf0e48de8f09d068d7154480aca98f3fa9))
