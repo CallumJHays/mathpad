@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.7 (2021-10-24)
+### Fix
+* Move kaleido to dev-dependency ([`14f759e`](https://github.com/CallumJHays/mathpad/commit/14f759e017e535007b1089cf78432fa9b63acc0a))
+
 ## v0.1.6 (2021-10-24)
 ### Fix
 * Simulate_dynamic_system bug ([`1c9bb3e`](https://github.com/CallumJHays/mathpad/commit/1c9bb3e132001e0cac7640f1e5d4cdd124ee962e))
