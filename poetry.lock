@@ -2,7 +2,7 @@
 name = "ansitable"
 version = "0.9.6"
 description = "Quick and easy display of tabular data and matrices with optional ANSI color and borders."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.4"
 
@@ -226,7 +226,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 name = "colored"
 version = "1.4.2"
 description = "Simple library for color and formatting to terminal"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1384,7 +1384,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.10" # < 3.10 required by scipy currently
-content-hash = "e19a35b04024eb8cd32d8f3eeadbd2e4f18c5ab0e649476accd31ca94894f7a1"
+content-hash = "17ad37ef6b72e94b9b59ef649a56fb90f86d330645b486cb35ad788e751b9b83"
 
 [metadata.files]
 ansitable = [

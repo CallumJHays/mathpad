@@ -1,12 +1,12 @@
 from typing import Union, overload, Dict
 import sympy
 
-from mathpad.val import GOutputVal, Val, Q
+from mathpad.val import GenericVal, Val, Q
 from mathpad.equation import Equation
 
 
 @overload
-def simplify(expr_or_eqn: GOutputVal) -> GOutputVal:
+def simplify(expr_or_eqn: GenericVal) -> GenericVal:
     ...
 
 
@@ -15,9 +15,7 @@ def simplify(expr_or_eqn: Equation) -> Equation:
     ...
 
 
-def simplify(
-    expr_or_eqn: Union[GOutputVal, Equation]
-) -> Union[GOutputVal, Equation]:
+def simplify(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(simplify(expr_or_eqn.lhs), simplify(expr_or_eqn.rhs))
@@ -27,7 +25,7 @@ def simplify(
 
 
 @overload
-def factor(expr_or_eqn: GOutputVal) -> GOutputVal:
+def factor(expr_or_eqn: GenericVal) -> GenericVal:
     ...
 
 
@@ -36,9 +34,7 @@ def factor(expr_or_eqn: Equation) -> Equation:
     ...
 
 
-def factor(
-    expr_or_eqn: Union[GOutputVal, Equation]
-) -> Union[GOutputVal, Equation]:
+def factor(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(factor(expr_or_eqn.lhs), factor(expr_or_eqn.rhs))
@@ -48,7 +44,7 @@ def factor(
 
 
 @overload
-def expand(expr_or_eqn: GOutputVal) -> GOutputVal:
+def expand(expr_or_eqn: GenericVal) -> GenericVal:
     ...
 
 
@@ -57,9 +53,7 @@ def expand(expr_or_eqn: Equation) -> Equation:
     ...
 
 
-def expand(
-    expr_or_eqn: Union[GOutputVal, Equation]
-) -> Union[GOutputVal, Equation]:
+def expand(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         # TODO: simplification that actually makes use of equality
         return Equation(expand(expr_or_eqn.lhs), expand(expr_or_eqn.rhs))
@@ -72,9 +66,7 @@ SubstitutionMap = Dict[Val, Q[Val]]
 
 
 @overload
-def subs(
-    expr_or_eqn: GOutputVal, substitutions: SubstitutionMap
-) -> GOutputVal:
+def subs(expr_or_eqn: GenericVal, substitutions: SubstitutionMap) -> GenericVal:
     ...
 
 
@@ -84,9 +76,9 @@ def subs(expr_or_eqn: Equation, substitutions: SubstitutionMap) -> Equation:
 
 
 def subs(
-    expr_or_eqn: Union[GOutputVal, Equation],
+    expr_or_eqn: Union[GenericVal, Equation],
     substitutions: SubstitutionMap,
-) -> Union[GOutputVal, Equation]:
+) -> Union[GenericVal, Equation]:
     if isinstance(expr_or_eqn, Equation):
         return Equation(
             subs(expr_or_eqn.lhs, substitutions),

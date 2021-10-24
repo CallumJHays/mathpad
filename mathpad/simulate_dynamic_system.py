@@ -32,14 +32,15 @@ def simulate_dynamic_system(
     verbose: bool = True,
     display_plots: bool = True,
     display_progress_bar: bool = True,
-    display_original_equations: bool = False,
-    display_subbed_equations: bool = False,
+    display_explanation: bool = False,
     # plot formatting (display_plots=True)
     plot_static: bool = False,
     plot_static_figsize: Tuple[int, int] = (960, 400),
     plot_title: str = "Solution #{solutionNo}",
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
+
+    verbose = verbose or display_explanation
 
     if plot_static_figsize and not plot_static:
         print(
@@ -59,10 +60,14 @@ def simulate_dynamic_system(
     if max_step is None:
         max_step = float("inf")
 
-    if display_original_equations:
+    if display_explanation:
         print("Using Input Equations:")
         for eqn in dynamics_equations:
             display(eqn)
+
+        print("Subbing in Values:")
+        for replace, _with in substitute.items():
+            display(replace == _with)
 
     # pre-substitute and simplify the input equations before further processing
     problem_eqns = [simplify(subs(eqn, substitute)) for eqn in dynamics_equations]
@@ -104,15 +109,13 @@ def simulate_dynamic_system(
         for fn, lvl in highest_derivatives.items()
     ]
 
-    solve_for_recorded_data = [pqty.val for pqty in record]
+    solve_for_recorded_data = [val.val for val in record]
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    _print_if(
-        verbose, f"Solving subbed Equations{':' if display_subbed_equations else ''}"
-    )
+    _print_if(verbose, f"Solving subbed Equations{':' if display_explanation else ''}")
 
-    if display_subbed_equations:
+    if display_explanation:
         for eqn in problem_eqns:
             display(eqn)
 
@@ -126,6 +129,7 @@ def simulate_dynamic_system(
     )
 
     assert any(solutions), "sympy solving failed!"
+    _print_if(verbose, "Solving finished.")
 
     all_data = []
 
@@ -139,6 +143,15 @@ def simulate_dynamic_system(
 
         # convert it to a vector for lambdify below
         solution_vec = [solution[val] for val in solve_for]
+
+        if display_explanation:
+            print(
+                "Found Solution" + (f"#{solution_idx + 1}:" if all_solutions else ":")
+            )
+            for solve_val, result in zip(solve_for, solution_vec):
+                eqn = sympy.Eq(solve_val, result)
+                if eqn != True:  # this happens with passthrough variables
+                    display(eqn)
 
         unknowns = set()
         for val in solution.values():
@@ -197,19 +210,19 @@ def simulate_dynamic_system(
         y0 = []
         for sym in inputs:
             sym_hash = hash(sym)
-            # find the original pqty
+            # find the original val
             # this is backwards, and this whole function could probably use a refactor
-            for pqty in initial_conditions.keys():
-                if hash(pqty) == sym_hash:
+            for val in initial_conditions.keys():
+                if hash(val) == sym_hash:  # because (hash(val) == hash(val.val))
                     break
             else:
                 assert (
                     sym in initial_conditions
                 ), f"Required initial condition missing: {sym}"
 
-            replacement = initial_conditions[pqty]
+            replacement = initial_conditions[val]
             if isinstance(replacement, Val):
-                val = float(replacement.in_units(pqty).val)
+                val = float(replacement.in_units(val).val)
             else:
                 val = replacement
 
@@ -217,7 +230,15 @@ def simulate_dynamic_system(
 
         integrator = RK45(step, t0=0, y0=y0, t_bound=x_f, max_step=max_step)
 
-        _print_if(verbose, "Solving finished. Simulating...")
+        _print_if(
+            verbose,
+            f"Simulating from t=0 to t={x_f} with a max_step of {max_step}"
+            + (" with initial conditions:" if display_explanation else "."),
+        )
+
+        if display_explanation:
+            for replace, _with in initial_conditions.items():
+                display(replace == _with)
 
         t_prev = 0
 
@@ -247,16 +268,14 @@ def simulate_dynamic_system(
                     for idx, sym in enumerate(record)
                 ],
                 layout={
-                    "xaxis": {
-                        "title": str(x_axis)
-                    },
+                    "xaxis": {"title": str(x_axis)},
                     "title": {
                         "text": plot_title.format(solutionNo=solution_idx + 1),
                         "y": 0.9,
                         "x": 0.5,
                         "xanchor": "center",
                         "yanchor": "top",
-                    }
+                    },
                 },
             ).show("svg" if plot_static else None)
 

@@ -18,6 +18,14 @@ class AngularMomentum(Unit):
     dimension = d.mass * d.velocity * d.angle
 
 
+class AngularVelocity(Unit):
+    dimension = d.angle / d.time
+
+
+class MomentOfInertia(Unit):
+    dimension = d.mass / d.length ** 2
+
+
 class Impedance(Unit):
     dimension = d.impedance
 

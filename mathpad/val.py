@@ -43,8 +43,8 @@ class Val(ABC):
         super().__init_subclass__()
 
     def new(
-        self: "GOutputVal", val: sympy.Expr, units: sympy.Expr = None
-    ) -> "GOutputVal":
+        self: "GenericVal", val: sympy.Expr, units: sympy.Expr = None
+    ) -> "GenericVal":
         "Creates a new Val of the same class. if units == None; units = self.units"
         if units == None:
             units = self.units
@@ -79,7 +79,7 @@ class Val(ABC):
         ...
 
     @overload
-    def __eq__(self: "GOutputVal", other: "Q[GOutputVal]") -> "Equation":
+    def __eq__(self: "GenericVal", other: "Q[GenericVal]") -> "Equation":
         ...
 
     def __eq__(self, other: "Q[Val]") -> "Equation":
@@ -100,10 +100,13 @@ class Val(ABC):
         clean_val_ltx = val_ltx.replace("- 1.0 ", "-")
         units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)
 
+        begin_center, end_center = "\\begin{center}", "\\end{center}"
+        begin_center, end_center = "", ""
+
         spacer_ltx = "\\hspace{1.25em}"
         # remove '1.0's
 
-        return f"$\\displaystyle {clean_val_ltx} {spacer_ltx} {units_ltx}$"
+        return f"$$ {begin_center} {clean_val_ltx} {spacer_ltx} {units_ltx} {end_center} $$"
 
     def _repr_png_(self):
         return self.val._repr_png_()
@@ -145,7 +148,7 @@ class Val(ABC):
 
         return res
 
-    def in_units(self: "GOutputVal", units: Union[str, "Val"]) -> "GOutputVal":
+    def in_units(self: "GenericVal", units: Union[str, "Val"]) -> "GenericVal":
         if isinstance(units, str):
             if units == "si":
                 units = "SI"
@@ -167,46 +170,46 @@ class Val(ABC):
         ...
 
     @overload
-    def __add__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __add__(self: "GenericVal", other: Num) -> "GenericVal":
         ...
 
     @overload
-    def __add__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __add__(self: "GenericVal", other: Num) -> "GenericVal":
         ...
 
     @overload
-    def __add__(self: "GOutputVal", other: "GOutputVal") -> "GOutputVal":
+    def __add__(self: "GenericVal", other: "GenericVal") -> "GenericVal":
         ...
 
-    def __add__(self, other: "Q[GOutputVal]"):
+    def __add__(self, other: "Q[GenericVal]"):
         return self._sum_op(other, lambda a, b: a + b, "+", False)
 
-    def __radd__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __radd__(self: "GenericVal", other: Num) -> "GenericVal":
         return self._sum_op(other, lambda a, b: b + a, "+", True)
 
     @overload
-    def __sub__(self: "GOutputVal", other: "OutputVal") -> "GOutputVal":
+    def __sub__(self: "GenericVal", other: "OutputVal") -> "GenericVal":
         ...
 
     @overload
-    def __sub__(self, other: "GOutputVal") -> "GOutputVal":
+    def __sub__(self, other: "GenericVal") -> "GenericVal":
         ...
 
     @overload
-    def __sub__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __sub__(self: "GenericVal", other: Num) -> "GenericVal":
         ...
 
     @overload
-    def __sub__(self: "GOutputVal", other: "GOutputVal") -> "GOutputVal":
+    def __sub__(self: "GenericVal", other: "GenericVal") -> "GenericVal":
         ...
 
-    def __sub__(self, other: "Q[GOutputVal]"):
+    def __sub__(self, other: "Q[GenericVal]"):
         return self._sum_op(other, lambda a, b: a - b, "-", False)
 
     def __neg__(self):
         return self.new(-self.val)  # type: ignore
 
-    def __rsub__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __rsub__(self: "GenericVal", other: Num) -> "GenericVal":
         return self._sum_op(other, lambda a, b: b - a, "-", True)
 
     @overload
@@ -214,16 +217,19 @@ class Val(ABC):
         ...
 
     @overload
-    def __mul__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __mul__(self: "GenericVal", other: Num) -> "GenericVal":
         ...
 
     def __mul__(self, other: "Q[Val]") -> "OutputVal":
         return self._prod_op(other, lambda a, b: a * b, is_pow=False)
 
+    def __call__(self, x) -> "Val":
+        return self.new(self.val(x))
+
     # because matrix multiplication has its own operator, multiplication can be commutative
     # sympy also reorders everything under the hood (alphabetically, I believe; so preserving order is pointless)
 
-    def __rmul__(self: "GOutputVal", other: Union[Num, str]) -> "GOutputVal":
+    def __rmul__(self: "GenericVal", other: Union[Num, str]) -> "GenericVal":
 
         if isinstance(other, str):
             assert self.val == 1, "Attempted to create variable with a non-unit Val"
@@ -255,7 +261,7 @@ class Val(ABC):
         ...
 
     @overload
-    def __truediv__(self: "GOutputVal", other: Num) -> "GOutputVal":
+    def __truediv__(self: "GenericVal", other: Num) -> "GenericVal":
         ...
 
     def __truediv__(self, other: "Q[Val]") -> "OutputVal":
@@ -286,12 +292,12 @@ class Val(ABC):
     __rxor__ = __pow__
 
     def _sum_op(
-        self: "GOutputVal",
-        other: "Q[GOutputVal]",
+        self: "GenericVal",
+        other: "Q[GenericVal]",
         op: Callable[[Any, Any], Any],
         op_str: str,
         reverse: bool,
-    ) -> "GOutputVal":
+    ) -> "GenericVal":
         other_units, other_val = (
             (other.units, other.val) if isinstance(other, Val) else (self.units, other)
         )
@@ -369,8 +375,8 @@ class Val(ABC):
             return res
 
 
-GOutputVal = TypeVar("GOutputVal", bound=Val)
-Q = Union[GOutputVal, Num, "OutputVal"]
+GenericVal = TypeVar("GenericVal", bound=Val)
+Q = Union[GenericVal, Num, "OutputVal"]
 
 
 class DimensionError(TypeError):

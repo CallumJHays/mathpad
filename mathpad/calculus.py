@@ -9,25 +9,26 @@ import sympy
 
 
 @overload
-def diff(pqty: Q[Val], n: int = 1, *, wrt: Val = t) -> OutputVal:
+def diff(val: Q[Val], n: int = 1, *, wrt: Val = t) -> OutputVal:
     ...
 
 
 @overload
-def diff(pqty: Iterable[Q[Val]], n: int = 1, *, wrt: Val = t) -> List[OutputVal]:
+def diff(val: Iterable[Q[Val]], n: int = 1, *, wrt: Val = t) -> List[OutputVal]:
     ...
 
 
 def diff(
-    pqty: Union[Q[Val], Iterable[Q[Val]]], n: int = 1, *, wrt: Val = t
+    val: Union[Q[Val], Iterable[Q[Val]]], n: int = 1, *, wrt: Val = t
 ) -> Union[OutputVal, List[OutputVal]]:
 
-    if isinstance(pqty, list):
-        return [diff(pq, wrt=wrt, n=n) for pq in pqty]
+    try:  # is val iterable? assume its a vector
+        iter(val)
+        return [diff(pq, wrt=wrt, n=n) for pq in val]
 
-    else:
+    except TypeError:
         res = OutputVal(
-            pqty.units / wrt.units, pqty.val.diff((wrt.val, n))  # type: ignore
+            val.units / wrt.units, val.val.diff((wrt.val, n))  # type: ignore
         )
 
         if _global_options.auto_simplify:
@@ -36,9 +37,9 @@ def diff(
         return res
 
 
-def integral(pqty: Val, wrt: Val = t) -> OutputVal:
+def integral(val: Val, wrt: Val = t) -> OutputVal:
     res = OutputVal(
-        pqty.units * wrt.units, sympy.integrate(pqty.val, wrt.val)  # type: ignore
+        val.units * wrt.units, sympy.integrate(val.val, wrt.val)  # type: ignore
     )
 
     if _global_options.auto_simplify:

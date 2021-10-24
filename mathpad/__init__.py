@@ -14,6 +14,7 @@ from mathpad.functions import piecewise, sqrt
 from mathpad.calculus import diff, integral
 from mathpad.trigonometry import cos, sin, tan, magnitude, hypotenuse
 from mathpad.simulate_dynamic_system import simulate_dynamic_system
+from mathpad.vec3 import Vec3
 
 try:
     from IPython.display import display

@@ -2,7 +2,7 @@ from typing import Collection, Dict, Set, Tuple, Union, overload
 from ansitable import ANSITable
 import sympy
 
-from mathpad.val import Val, GOutputVal
+from mathpad.val import Val, GenericVal
 from mathpad.equation import Equation
 
 
@@ -10,7 +10,7 @@ class Solution:
     def __init__(self, result_dict: Dict[Val, Val]):
         self.result_dict = result_dict
 
-    def __getitem__(self, k: GOutputVal) -> GOutputVal:
+    def __getitem__(self, k: GenericVal) -> GenericVal:
         result = self.result_dict[k]
         assert result.units == k.units
         return result

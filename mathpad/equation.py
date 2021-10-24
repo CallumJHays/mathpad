@@ -3,11 +3,11 @@ import sympy
 from sympy.physics.vector.printing import vlatex
 
 if TYPE_CHECKING:
-    from mathpad.val import GOutputVal, Q
+    from mathpad.val import GenericVal, Q
 
 
 class Equation:
-    def __init__(self, lhs: "Q[GOutputVal]", rhs: "Q[GOutputVal]"):
+    def __init__(self, lhs: "Q[GenericVal]", rhs: "Q[GenericVal]"):
         from mathpad.val import Val
 
         lhs_is_pqty = isinstance(lhs, Val)
@@ -50,7 +50,8 @@ class Equation:
         ).replace("- 1.0 ", "-")
 
         units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)
+        begin_center, end_center = "\\begin{center}", "\\end{center}"
 
         spacer_ltx = "\\hspace{1.25em}"
 
-        return f"$\\displaystyle {lhs_ltx} = {rhs_ltx} {spacer_ltx} {units_ltx}$"
+        return f"$$ {lhs_ltx} = {rhs_ltx} {spacer_ltx} {units_ltx} $$"

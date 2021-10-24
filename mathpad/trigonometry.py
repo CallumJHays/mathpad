@@ -15,7 +15,7 @@ def tan(x: Q[Angle]) -> Dimensionless:
     return Dimensionless(1, sympy.tan(x.val))  # type: ignore
 
 
-def magnitude(*xs: Q[GOutputVal]) -> GOutputVal:
+def magnitude(*xs: Q[GenericVal]) -> GenericVal:
     "x's are lengths in orthogonal directions. ie (i, j k)"
     c_2 = 0
     for x in xs:
