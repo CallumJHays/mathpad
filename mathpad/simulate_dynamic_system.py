@@ -37,6 +37,7 @@ def simulate_dynamic_system(
     plot_static: bool = False,
     plot_static_figsize: Tuple[int, int] = (960, 400),
     plot_title: str = "Solution #{solutionNo}",
+    _NEW_SOLVE: bool = False # TODO: fix this properly
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
@@ -125,11 +126,11 @@ def simulate_dynamic_system(
 
     solutions = sympy.solve(
         [eqn.as_sympy_eq() for eqn in problem_eqns],
-        solve_for,
+        solve_for if _NEW_SOLVE else solve_for_highest_derivatives,
         dict=True,
     )
 
-    assert any(solutions), "sympy solving failed!"
+    assert any(solutions), "No Solution Found"
     _print_if(verbose, "Solving finished.")
 
     all_data = []
