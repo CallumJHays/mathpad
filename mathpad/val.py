@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Type, Union, TypeVar, overload, Callable
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union, TypeVar, overload, Callable, cast
 import re
 from abc import ABC
 
@@ -16,12 +16,14 @@ from sympy.physics.units.util import (
 
 from mathpad.equation import Equation
 from mathpad.global_options import _global_options
+if TYPE_CHECKING:
+    from mathpad.algebra import SubstitutionMap
 
 # TODO: support numpy arrays
 Num = Union[int, float, complex]
-_UNSET = ()
+_DIMENSION_UNSET = ()
 
-# this should be a classmethod, but it isn't
+# function to get a dimensional expression from an expression with quantities
 _units2dimensional_expr = UnitSystem.get_default_unit_system().get_dimensional_expr
 
 
@@ -29,7 +31,7 @@ class Val(ABC):
     "An value with a set of units. For example 10 ohms or 20 meters / second**2"
     # TODO: documentation
 
-    dimension: su.Dimension = _UNSET  # type: ignore
+    dimension: su.Dimension = _DIMENSION_UNSET  # type: ignore
 
     def __new__(
         cls,
@@ -38,9 +40,11 @@ class Val(ABC):
     ):
         return super().__new__(cls)
 
-    def __init_subclass__(cls):
-        assert str(cls) == "<class 'mathpad.val.Unit'>" or cls.dimension is not _UNSET
-        super().__init_subclass__()
+    # TODO: Delete dead code?
+    # def __init_subclass__(cls):
+    #     assert str(cls) == "<class 'mathpad.val.Unit'>" \
+    #         or cls.dimension is not _DIMENSION_UNSET
+    #     super().__init_subclass__()
 
     def new(
         self: "GenericVal", val: sympy.Expr, units: sympy.Expr = None
@@ -59,7 +63,7 @@ class Val(ABC):
         self.val: sympy.Symbol = sympy.sympify(val)
         self.units: su.Quantity = quantity_simplify(sympy.sympify(units))
 
-        assert self.dimension is not _UNSET
+        assert self.dimension is not _DIMENSION_UNSET
         units_dimension = _units2dimensional_expr(self.units)
 
         if _is_dimensionless(self.dimension) and _is_dimensionless(units_dimension):
@@ -122,7 +126,8 @@ class Val(ABC):
         res = re.sub(
             r"(\d+\.\d*[^0])0+",
             r"\1",
-            str(self.val if _is_primitive_num(self.val) else self.val.evalf(6)),  # type: ignore
+            str(self.val if _is_primitive_num(self.val)
+                else self.val.evalf(6)),  # type: ignore
         )
         res = re.sub(r"\.0+([e\*]|$)", r"\1", res)
 
@@ -237,7 +242,8 @@ class Val(ABC):
             # TODO: support variables which are functions of a symbol other than t. should this be a fn() fn?
             if "(" in other:
                 assert (
-                    other.count("(") == 1 and other.count(")") == 1 and other[-1] == ")"
+                    other.count("(") == 1 and other.count(
+                        ")") == 1 and other[-1] == ")"
                 ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x)'. Insted got {other}"
 
                 function_name, the_rest = other.split("(")
@@ -251,7 +257,11 @@ class Val(ABC):
             else:
                 sym = sympy.Symbol(other)
 
-            return self.new(sym)
+            res = self.new(sym)
+            if _global_options.ipython_display_symbol_on_definition:
+                from IPython.display import display
+                display(res)
+            return res
 
         else:
             return self._prod_op(other, lambda a, b: b * a, is_pow=False)
@@ -299,7 +309,8 @@ class Val(ABC):
         reverse: bool,
     ) -> "GenericVal":
         other_units, other_val = (
-            (other.units, other.val) if isinstance(other, Val) else (self.units, other)
+            (other.units, other.val) if isinstance(
+                other, Val) else (self.units, other)
         )
 
         if isinstance(other, Val):
@@ -346,7 +357,8 @@ class Val(ABC):
             else (other if is_pow else 1, other)
         )
 
-        rescale_factor, new_units = _split_coeff_and_units(op(self.units, other_units))
+        rescale_factor, new_units = _split_coeff_and_units(
+            op(self.units, other_units))
 
         new_val = rescale_factor * op(self.val, other_val)
         if isinstance(new_val, sympy.Expr):
@@ -373,6 +385,35 @@ class Val(ABC):
 
         else:
             return res
+
+    def as_numpy_code(self) -> str:
+        from sympy.printing.numpy import SciPyPrinter
+        return cast(str, SciPyPrinter().doprint(self.val))
+
+    def as_numpy_function(self, *, args: List['Val']):
+        # TODO: auto-populate args with all symbols in self.val
+        import numpy as np
+        inner_function: Callable[..., np.ndarray] \
+            = sympy.lambdify([arg.val for arg in args], self.val, cse=True)
+        _args = args  # due to variable shadowing
+
+        def numpy_function(args: Dict['Val', Union[np.ndarray, float, complex]]):
+            # TODO: nicer error message for KeyError here
+            return inner_function(*[args[val] for val in _args])
+
+        return numpy_function
+
+    def subs(self, substitutions: 'SubstitutionMap'):
+        from mathpad import subs
+        return subs(self, substitutions)
+
+    def integral(self, *, wrt: Optional['Val'] = None):
+        from mathpad import integral, t
+        return integral(self, wrt or t)
+
+    def diff(self, n: int = 1, *, wrt: Optional['Val']):
+        from mathpad import diff, t
+        return diff(self, n, wrt=wrt or t)
 
 
 GenericVal = TypeVar("GenericVal", bound=Val)

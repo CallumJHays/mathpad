@@ -37,7 +37,7 @@ def simulate_dynamic_system(
     plot_static: bool = False,
     plot_static_figsize: Tuple[int, int] = (960, 400),
     plot_title: str = "Solution #{solutionNo}",
-    _NEW_SOLVE: bool = False # TODO: fix this properly
+    _NEW_SOLVE: bool = False  # TODO: fix this properly
 ) -> List[List[Tuple[float, List[float]]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
@@ -45,7 +45,8 @@ def simulate_dynamic_system(
 
     if plot_static_figsize and not plot_static:
         print(
-            "Warning: plot_static_figsize was set but plot_static was not enabled. Enabling for you automatically. Set plot_static=True to "
+            "Warning: plot_static_figsize was set but plot_static was not enabled. Enabling for you automatically."
+            "\nSet plot_static=True to silence this warning."
         )
 
     # make static renderings a certain size, the default one is too square for my liking
@@ -71,7 +72,8 @@ def simulate_dynamic_system(
             display(replace == _with)
 
     # pre-substitute and simplify the input equations before further processing
-    problem_eqns = [simplify(subs(eqn, substitute)) for eqn in dynamics_equations]
+    problem_eqns = [simplify(subs(eqn, substitute))
+                    for eqn in dynamics_equations]
 
     # collect derivatives and any unspecified unkowns
     derivatives: Set[Tuple[Function, float]] = set()
@@ -81,12 +83,15 @@ def simulate_dynamic_system(
         # TODO: properly check x_axis for derivative collection (usually t)
         derivatives.update(
             {
-                (d.args[0], d.args[1][1] if isinstance(d.args[1], sympy.Tuple) else 1)
+                (d.args[0], d.args[1][1]
+                 if isinstance(d.args[1], sympy.Tuple)
+                 else 1)
                 for d in sympy_eqn.atoms(Derivative)
             }
         )
         derivatives.update(
-            {(f, 0) for f in sympy_eqn.atoms(Function) if isinstance(f, AppliedUndef)}
+            {(f, 0) for f in sympy_eqn.atoms(Function)
+             if isinstance(f, AppliedUndef)}
         )
 
     highest_derivatives = {}
@@ -115,7 +120,8 @@ def simulate_dynamic_system(
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    _print_if(verbose, f"Solving subbed Equations{':' if display_explanation else ''}")
+    _print_if(
+        verbose, f"Solving subbed Equations{':' if display_explanation else ''}")
 
     if display_explanation:
         for eqn in problem_eqns:
@@ -148,7 +154,8 @@ def simulate_dynamic_system(
 
         if display_explanation:
             print(
-                "Found Solution" + (f"#{solution_idx + 1}:" if all_solutions else ":")
+                "Found Solution" +
+                (f"#{solution_idx + 1}:" if all_solutions else ":")
             )
             for solve_val, result in zip(solve_for, solution_vec):
                 eqn = sympy.Eq(solve_val, result)
@@ -175,7 +182,7 @@ def simulate_dynamic_system(
 
             if lowest_lvl == highest_lvl:
                 continue
-            
+
             n_unique_derivatives += 1
 
             input_unzipped.append(
@@ -211,7 +218,8 @@ def simulate_dynamic_system(
 
             data.append((x, recorded_data))
 
-            dstate = np.append(state[n_unique_derivatives:], highest_derivatives)
+            dstate = np.append(
+                state[n_unique_derivatives:], highest_derivatives)
             return dstate
 
         # normalize and check initial conditions
