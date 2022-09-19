@@ -33,6 +33,10 @@
 
 Type-hinted, simplified interface to `sympy` for solving engineering, science and maths problems.
 
+Automatically handles unit conversion & dimensionality checking ('spellcheck') for math operations.
+
+Also includes scipy-based simulation functions (RK46, etc) for evaluating nonlinear models.
+
 ## Example
 
 A car is driving at 5 miles per hour. The driver hits the brakes,
