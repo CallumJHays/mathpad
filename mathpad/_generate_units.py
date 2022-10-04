@@ -33,7 +33,7 @@ with open(f"{HERE}/units.py", "w") as units_f, open(
         if name.endswith("constant"):
             constants_f.write(
                 f"""
-{name} = OutputVal(u.{name})"""
+{name} = Val(u.{name})"""
             )
 
         elif isinstance(qty, Quantity):

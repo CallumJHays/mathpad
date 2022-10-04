@@ -1,6 +1,7 @@
-from typing import Any, Tuple, Type, Union, TypeVar, overload, Callable
+from typing import TYPE_CHECKING, Any, Literal, Tuple, Type, Union, TypeVar, overload, Callable
 import re
 from abc import ABC
+from typing_extensions import Self
 
 import sympy
 import sympy.physics.units as su
@@ -17,9 +18,11 @@ from sympy.physics.units.util import (
 from mathpad.equation import Equation
 from mathpad.global_options import _global_options
 
+if TYPE_CHECKING:
+    from mathpad.vector import Vec
+
 # TODO: support numpy arrays
 Num = Union[int, float, complex]
-_UNSET = ()
 
 # this should be a classmethod, but it isn't
 _units2dimensional_expr = UnitSystem.get_default_unit_system().get_dimensional_expr
@@ -27,59 +30,44 @@ _units2dimensional_expr = UnitSystem.get_default_unit_system().get_dimensional_e
 
 class Val(ABC):
     "An value with a set of units. For example 10 ohms or 20 meters / second**2"
-    # TODO: documentation
 
-    dimension: su.Dimension = _UNSET  # type: ignore
-
-    def __new__(
-        cls,
-        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
-        val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
-    ):
-        return super().__new__(cls)
-
-    def __init_subclass__(cls):
-        assert str(cls) == "<class 'mathpad.val.Unit'>" or cls.dimension is not _UNSET
-        super().__init_subclass__()
-
-    def new(
-        self: "GenericVal", val: sympy.Expr, units: sympy.Expr = None
-    ) -> "GenericVal":
-        "Creates a new Val of the same class. if units == None; units = self.units"
-        if units == None:
-            units = self.units
-        return self.__class__(units, val)
 
     def __init__(
         self,
-        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
+        units: Union[su.Quantity, sympy.Expr],  # may also be a sympy expression of su.Quantities, ie su.meter**2
         val: Union[sympy.Expr, Num] = 1,
     ):
 
         self.val: sympy.Symbol = sympy.sympify(val)
         self.units: su.Quantity = quantity_simplify(sympy.sympify(units))
 
-        assert self.dimension is not _UNSET
-        units_dimension = _units2dimensional_expr(self.units)
+        units_dimension = _units2dimensional_expr(self.units) # type: ignore
 
-        if _is_dimensionless(self.dimension) and _is_dimensionless(units_dimension):
-            return
+        if hasattr(self, 'dimension'):
+            # if a dimension has already been specified by the class, check that it matches
 
-        else:
+            if _is_dimensionless(units_dimension) and _is_dimensionless(self.dimension):
+                # equivalent_dims() doesn't handle this case properly, but this works
+                return
+            
             assert dimsys_SI.equivalent_dims(units_dimension, self.dimension), (
                 f"Units {self.units} do not match the dimensionality of {self.__class__.__name__} ({self.dimension}).\n"
                 f"Instead got {units_dimension}"
             )
+        
+        else:
+            # otherwise assign it to the dimensionality of the units provided
+            self.dimension = units_dimension
 
     def __hash__(self):
         return hash(self.val)
 
     @overload
-    def __eq__(self, other: "OutputVal") -> "Equation":
+    def __eq__(self, other: "Val") -> "Equation":
         ...
 
     @overload
-    def __eq__(self: "GenericVal", other: "Q[GenericVal]") -> "Equation":
+    def __eq__(self, other: "Q[Self]") -> "Equation":
         ...
 
     def __eq__(self, other: "Q[Val]") -> "Equation":
@@ -97,16 +85,14 @@ class Val(ABC):
     def _repr_latex_(self):
         # use vlatex because it applies dot notation where possible
         val_ltx = vlatex(self.val)
+        
+        # remove '1.0's
         clean_val_ltx = val_ltx.replace("- 1.0 ", "-")
         units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)
 
-        begin_center, end_center = "\\begin{center}", "\\end{center}"
-        begin_center, end_center = "", ""
-
         spacer_ltx = "\\hspace{1.25em}"
-        # remove '1.0's
 
-        return f"$$ {begin_center} {clean_val_ltx} {spacer_ltx} {units_ltx} {end_center} $$"
+        return f"$$ {clean_val_ltx} {spacer_ltx} {units_ltx} $$"
 
     def _repr_png_(self):
         return self.val._repr_png_()
@@ -144,14 +130,13 @@ class Val(ABC):
 
             res += f" {units_str}"
 
-        # TODO: use superscript for exponents (both val and units)
+        # TODO: use superscript for exponents
 
         return res
 
-    def in_units(self: "GenericVal", units: Union[str, "Val"]) -> "GenericVal":
+    def in_units(self, units: Union[Literal["SI"], "Val"]) -> Self:
         if isinstance(units, str):
-            if units == "si":
-                units = "SI"
+            assert units == "SI", f"Only 'SI' is supported. Got {units}"
             new_units = UnitSystem.get_unit_system(units)._base_units
 
         else:
@@ -163,73 +148,27 @@ class Val(ABC):
         )
         new_val = units_factor * self.val
 
-        return self.new(new_val, new_units)
+        return self.__class__(new_units, new_val)
 
-    @overload
-    def __add__(self, other: "OutputVal") -> "OutputVal":
-        ...
-
-    @overload
-    def __add__(self: "GenericVal", other: Num) -> "GenericVal":
-        ...
-
-    @overload
-    def __add__(self: "GenericVal", other: Num) -> "GenericVal":
-        ...
-
-    @overload
-    def __add__(self: "GenericVal", other: "GenericVal") -> "GenericVal":
-        ...
-
-    def __add__(self, other: "Q[GenericVal]"):
+    def __add__(self, other: "Q[Self]") -> Self:
         return self._sum_op(other, lambda a, b: a + b, "+", False)
 
-    def __radd__(self: "GenericVal", other: Num) -> "GenericVal":
+    def __radd__(self, other: Num) -> Self:
         return self._sum_op(other, lambda a, b: b + a, "+", True)
 
-    @overload
-    def __sub__(self: "GenericVal", other: "OutputVal") -> "GenericVal":
-        ...
-
-    @overload
-    def __sub__(self, other: "GenericVal") -> "GenericVal":
-        ...
-
-    @overload
-    def __sub__(self: "GenericVal", other: Num) -> "GenericVal":
-        ...
-
-    @overload
-    def __sub__(self: "GenericVal", other: "GenericVal") -> "GenericVal":
-        ...
-
-    def __sub__(self, other: "Q[GenericVal]"):
+    def __sub__(self, other: "Q[Self]") -> Self:
         return self._sum_op(other, lambda a, b: a - b, "-", False)
 
-    def __neg__(self):
-        return self.new(-self.val)  # type: ignore
-
-    def __rsub__(self: "GenericVal", other: Num) -> "GenericVal":
+    def __rsub__(self, other: Num) -> Self:
         return self._sum_op(other, lambda a, b: b - a, "-", True)
 
-    @overload
-    def __mul__(self, other: "Val") -> "OutputVal":
-        ...
+    def __neg__(self):
+        return self.__class__(self.units, -self.val) # type: ignore
 
-    @overload
-    def __mul__(self: "GenericVal", other: Num) -> "GenericVal":
-        ...
-
-    def __mul__(self, other: "Q[Val]") -> "OutputVal":
+    def __mul__(self, other: "Q[Val]") -> "Val":
         return self._prod_op(other, lambda a, b: a * b, is_pow=False)
 
-    def __call__(self, x) -> "Val":
-        return self.new(self.val(x))
-
-    # because matrix multiplication has its own operator, multiplication can be commutative
-    # sympy also reorders everything under the hood (alphabetically, I believe; so preserving order is pointless)
-
-    def __rmul__(self: "GenericVal", other: Union[Num, str]) -> "GenericVal":
+    def __rmul__(self, other: Union[Num, str]) -> Self:
 
         if isinstance(other, str):
             assert self.val == 1, "Attempted to create variable with a non-unit Val"
@@ -243,42 +182,34 @@ class Val(ABC):
                 function_name, the_rest = other.split("(")
                 function_of = [x.strip() for x in the_rest[:-1].split(",")]
                 if len(function_of) == 1 and function_of[0] == "t":
-                    sym = dynamicsymbols(function_name)
+                    sym: sympy.Expr = dynamicsymbols(function_name) # type: ignore
 
                 else:
-                    # TODO: test this
-                    sym = sympy.Function(function_name)(function_of)
+                    raise NotImplementedError(
+                        "Only variables which are functions of time are supported at this time"
+                    )
             else:
                 sym = sympy.Symbol(other)
 
-            return self.new(sym)
+            return self.__class__(self.units, sym)
 
         else:
             return self._prod_op(other, lambda a, b: b * a, is_pow=False)
 
-    @overload
-    def __truediv__(self, other: "Val") -> "OutputVal":
-        ...
 
-    @overload
-    def __truediv__(self: "GenericVal", other: Num) -> "GenericVal":
-        ...
-
-    def __truediv__(self, other: "Q[Val]") -> "OutputVal":
+    def __truediv__(self, other: "Q[Val]") -> "Val":
         return self._prod_op(other, lambda a, b: a / b, is_pow=False)
 
-    def __rtruediv__(self, other: Num) -> "OutputVal":
+    def __rtruediv__(self, other: Num) -> "Val":
         return self._prod_op(other, lambda a, b: b / a, is_pow=False)
 
-    # exponents should always be dimensionless
-    def __pow__(self, other: "Q[Val]") -> "OutputVal":
+    def __pow__(self, other: "Q[Val]") -> "Val":
+        # exponents should always be dimensionless
         if isinstance(other, Val) and not _is_dimensionless(other.dimension):
             raise DimensionalExponentError(
                 f"Exponents must always be dimensionless. Instead got {other.dimension}: {other}"
             )
         return self._prod_op(other, lambda a, b: a ** b, is_pow=True)
-
-    __xor__ = __pow__
 
     def __rpow__(self, other: Num) -> "Dimensionless":
         if not _is_dimensionless(self.dimension):
@@ -289,15 +220,17 @@ class Val(ABC):
         assert isinstance(res, Dimensionless)
         return res
 
-    __rxor__ = __pow__
-
     def _sum_op(
-        self: "GenericVal",
-        other: "Q[GenericVal]",
+        self,
+        other: "Q[Self]",
         op: Callable[[Any, Any], Any],
         op_str: str,
         reverse: bool,
-    ) -> "GenericVal":
+    ) -> Self:
+        from mathpad.vector import Vec
+
+        assert not isinstance(other, Vec)
+
         other_units, other_val = (
             (other.units, other.val) if isinstance(other, Val) else (self.units, other)
         )
@@ -324,22 +257,29 @@ class Val(ABC):
 
         new_val = op(self_val_rescaled, other_val_rescaled)
 
-        res = self.new(new_val, new_units)
+        res = self.__class__(new_units, new_val)
 
         if _global_options.auto_simplify:
             from mathpad.algebra import simplify
 
-            return simplify(res)
+            return simplify(res) # type: ignore
 
         else:
-            return res
+            return res # type: ignore
 
     def _prod_op(
         self,
         other: "Q[Val]",
         op: Callable[[Any, Any], Any],
         is_pow: bool,
-    ) -> "OutputVal":
+    ) -> "Val":
+        from mathpad.vector_space import VectorSpace
+        from mathpad.vector import Vec
+
+        if isinstance(other, (Vec, VectorSpace)):
+            # let the Vector/VectorSpace obj handle the multiplication by returning NotImplemented
+            return NotImplemented
+
         other_units, other_val = (
             (other.units, other.val)
             if isinstance(other, Val)
@@ -357,14 +297,14 @@ class Val(ABC):
         )
 
         if dimension_unchanged:
-            res = self.new(new_val, new_units)
+            res = self.__class__(new_units, new_val) # type: ignore
 
         elif new_units == Dimensionless.default_units:
             res = Dimensionless(new_units, new_val)  # type: ignore
 
         else:
             # TODO: a big lookup table for dimensional expr -> Val subclass
-            res = OutputVal(new_units, new_val)  # type: ignore
+            res = Val(new_units, new_val)  # type: ignore
 
         if _global_options.auto_simplify:
             from mathpad.algebra import simplify
@@ -375,16 +315,31 @@ class Val(ABC):
             return res
 
 
-GenericVal = TypeVar("GenericVal", bound=Val)
-Q = Union[GenericVal, Num, "OutputVal"]
+ValT = TypeVar("ValT", bound=Val)
+Q = Union[ValT, Num, "Val"]
 
 
 class DimensionError(TypeError):
-    pass
+    
+    @classmethod
+    def check(cls, a: Val, b: Val):
+        
+        if _is_dimensionless(a.dimension) and _is_dimensionless(b.dimension):
+            # equivalent_dims() doesn't handle this case properly so we have to do it manually
+            return
+
+        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension):
+            a_dim_str = a.dimension.name if isinstance(a.dimension, Dimension) else str(a.dimension)
+            b_dim_str = b.dimension.name if isinstance(b.dimension, Dimension) else str(b.dimension)
+            raise cls(f"Dimension mismatch: {a_dim_str} != {b_dim_str}")
 
 
 class DimensionalExponentError(DimensionError):
-    pass
+    
+    @classmethod
+    def check(cls, exponent: Val):
+        if not _is_dimensionless(exponent.dimension):
+            raise cls(f"Exponent must be dimensionless: {exponent.dimension}")
 
 
 class SumDimensionsMismatch(DimensionError):
@@ -401,9 +356,9 @@ class SumDimensionsMismatch(DimensionError):
 
     @classmethod
     def check(cls, a: Val, op_str: str, b: Val):
-        if not dimsys_SI.equivalent_dims(a.dimension, b.dimension) and not (
-            _is_dimensionless(a.dimension) and _is_dimensionless(b.dimension)
-        ):
+        try:
+            DimensionError.check(a, b)
+        except DimensionError:
             raise cls(a, op_str, b)
 
 
@@ -429,7 +384,13 @@ def _is_primitive_num(x: Q[Val]):
 
 
 class Unit(Val):
-    pass
+
+    dimension: Union[su.Dimension, sympy.Expr]
+    
+    def __init_subclass__(cls):
+        # ensure that subclasses specify a dimension
+        assert hasattr(cls, "dimension"), f"{cls} must specify a dimension"
+        return super().__init_subclass__()
 
 
 class Dimensionless(Unit):
@@ -437,40 +398,14 @@ class Dimensionless(Unit):
     dimension = su.Dimension(1)  # type: ignore
     default_units = sympy.sympify(1)
 
-    def __new__(
-        cls,
-        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
+    def __init__(
+        self,
+        units: Union[su.Quantity, sympy.Expr, Literal[1]],  # may also be a sympy expression of su.Quantities, ie su.meter**2
         val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
     ):
         # measures of angle are technically dimensionless
         assert _is_dimensionless(_units2dimensional_expr(units))
-        self = super().__new__(cls, units, val)
-        return self
-
-
-class OutputVal(Val):
-    """A physical quantity whose dimensionality cannot be type-hinted, but will still check at runtime."""
-
-    dimension = None  # type: ignore # gets set in __init__
-
-    def __new__(
-        cls,
-        units: su.Quantity,  # may also be a sympy expression of su.Quantities, ie su.meter**2
-        val: Union[sympy.Expr, Num] = 1,  # gets set in __init__
-    ):
-        dimension = _units2dimensional_expr(units)
-
-        # catch the case when a quantity is dimensionless (ie 1 meter/meter) -
-        # class as Dimensionless for
-        if _is_dimensionless(dimension):
-            res = Dimensionless(units, val)
-
-        else:
-            res = super().__new__(cls, units, val)
-            res.dimension = dimension  # type: ignore
-
-        return res
-
+        super().__init__(units, val)
 
 def _is_dimensionless(dimension):
     from mathpad.dimensions import Angle, AngularMil, SteRadian
@@ -481,15 +416,13 @@ def _is_dimensionless(dimension):
 
     # TODO: clean up this mess of a function
     return (
-        any(
-            dimension == dim
-            for dim in [
-                1,
-                Angle.dimension.args[0],
-                Dimensionless.dimension.args[0],
-                SteRadian.dimension.args[0],
-                AngularMil.dimension.args[0],
-            ]
-        )
+        dimension in [
+            1,
+            None,
+            Angle.dimension.args[0],
+            Dimensionless.dimension.args[0],
+            SteRadian.dimension.args[0],
+            AngularMil.dimension.args[0],
+        ]
         or dimsys_SI.get_dimensional_dependencies(dimension) == {}
     )

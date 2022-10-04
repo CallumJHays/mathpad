@@ -24,7 +24,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10" # < 3.10 required by scipy currently
-typing-extensions = "^3.10.0"
+typing-extensions = "^4.0.0"
 numpy = "^1.20"
 sympy = "^1.8"
 tqdm = "^4.62.3"

@@ -3,7 +3,6 @@ import sympy
 from mathpad.val import *
 from mathpad.units import *
 
-from mathpad.units import *
 from mathpad.solve import solve, Solution
 from mathpad.equation import Equation
 from mathpad._quality_of_life import t, g, pi, frac
@@ -13,8 +12,8 @@ from mathpad.display import tabulate
 from mathpad.functions import piecewise, sqrt
 from mathpad.calculus import diff, integral
 from mathpad.trigonometry import cos, sin, tan, magnitude, hypotenuse
+from mathpad.vector_space import VectorSpace, R2, R3
 from mathpad.simulate_dynamic_system import simulate_dynamic_system
-from mathpad.vec3 import Vec3
 
 try:
     from IPython.display import display

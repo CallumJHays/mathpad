@@ -1,22 +1,27 @@
 from typing import List, Optional, Tuple
 from sympy import Piecewise
 
-from mathpad.val import Val, GenericVal, Q
+from mathpad.val import Val, ValT, Q
 from mathpad._quality_of_life import frac
 
 # TODO: improve API once ">", "<", ">=" etc operators are implemented for Val
-def piecewise(x: Val, region_vals: List[Tuple[float, Q[GenericVal]]]) -> GenericVal:
+def piecewise(x: Val, region_vals: List[Tuple[float, Q[ValT]]]) -> ValT:
     "a piecewise series of <"
     assert any(region_vals)
     assert region_vals[-1][0] == float("inf")
     inp = []
-    prev_pqty: Optional[Val] = None
-    for lt, pqty in region_vals:
-        rescaled = pqty.in_units(prev_pqty) if prev_pqty is not None else pqty
+    prev_val: Optional[ValT] = None
+    for lt, val in region_vals:
+        rescaled = val.in_units(prev_val) if prev_val is not None else val
         inp.append((rescaled.val, x.val < lt))
-        prev_pqty = pqty
+        prev_val = val
+    
+    assert prev_val
 
-    return prev_pqty.new(Piecewise(*inp))
+    return prev_val.__class__(
+        prev_val.units,
+        Piecewise(*inp)
+    )
 
 
 def sqrt(x: Q[Val]):

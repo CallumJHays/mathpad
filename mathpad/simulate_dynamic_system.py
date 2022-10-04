@@ -38,7 +38,7 @@ def simulate_dynamic_system(
     plot_static_figsize: Tuple[int, int] = (960, 400),
     plot_title: str = "Solution #{solutionNo}",
     _NEW_SOLVE: bool = False # TODO: fix this properly
-) -> List[List[Tuple[float, List[float]]]]:
+) -> List[Tuple[float, List[float]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
     verbose = verbose or display_explanation
@@ -115,7 +115,7 @@ def simulate_dynamic_system(
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    _print_if(verbose, f"Solving subbed Equations{':' if display_explanation else ''}")
+    _print_if(verbose, f"Solving subbed Equations{':' if display_explanation else '...'}")
 
     if display_explanation:
         for eqn in problem_eqns:

@@ -1,88 +1,143 @@
 from typing import Union, overload, Dict
 import sympy
 
-from mathpad.val import GenericVal, Val, Q
+from mathpad.val import ValT, Val, Q
+from mathpad.vector import Vec, VecT
 from mathpad.equation import Equation
 
 
 @overload
-def simplify(expr_or_eqn: GenericVal) -> GenericVal:
+def simplify(obj: ValT) -> ValT:
     ...
-
 
 @overload
-def simplify(expr_or_eqn: Equation) -> Equation:
+def simplify(obj: Equation) -> Equation:
     ...
 
+@overload
+def simplify(obj: VecT) -> VecT:
+    ...
 
-def simplify(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
-    if isinstance(expr_or_eqn, Equation):
+def simplify(obj: Union[ValT, Equation, VecT]) -> Union[ValT, Equation, VecT]:
+    if isinstance(obj, Equation):
         # TODO: simplification that actually makes use of equality
-        return Equation(simplify(expr_or_eqn.lhs), simplify(expr_or_eqn.rhs))
+
+        return Equation(
+            simplify(obj.lhs),
+            simplify(obj.rhs)
+        )
+    
+    elif isinstance(obj, Vec):
+        return obj.__class__(
+            obj.space,
+            sympy.simplify(obj.val) # type: ignore
+        )
 
     else:
-        return expr_or_eqn.new(sympy.simplify(expr_or_eqn.val))
+        return obj.__class__(
+            obj.units,
+            sympy.simplify(obj.val)
+        )
 
 
 @overload
-def factor(expr_or_eqn: GenericVal) -> GenericVal:
+def factor(obj: ValT) -> ValT:
     ...
 
 
 @overload
-def factor(expr_or_eqn: Equation) -> Equation:
+def factor(obj: Equation) -> Equation:
     ...
 
 
-def factor(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
-    if isinstance(expr_or_eqn, Equation):
+@overload
+def factor(obj: VecT) -> VecT:
+    ...
+
+
+def factor(
+    obj: Union[ValT, Equation, VecT]
+) -> Union[ValT, Equation, VecT]:
+    if isinstance(obj, Equation):
         # TODO: simplification that actually makes use of equality
-        return Equation(factor(expr_or_eqn.lhs), factor(expr_or_eqn.rhs))
+        return Equation(
+            factor(obj.lhs),
+            factor(obj.rhs)
+        )
+    
+    elif isinstance(obj, Vec):
+            
+        return obj.__class__(
+            obj.space,
+            sympy.factor(obj.val)
+        )
 
     else:
-        return expr_or_eqn.new(sympy.factor(expr_or_eqn.val))
+        return obj.__class__(
+            obj.units,
+            sympy.factor(obj.val) # type: ignore
+        )
 
 
 @overload
-def expand(expr_or_eqn: GenericVal) -> GenericVal:
+def expand(obj: ValT) -> ValT:
     ...
 
 
 @overload
-def expand(expr_or_eqn: Equation) -> Equation:
+def expand(obj: Equation) -> Equation:
     ...
 
 
-def expand(expr_or_eqn: Union[GenericVal, Equation]) -> Union[GenericVal, Equation]:
-    if isinstance(expr_or_eqn, Equation):
+@overload
+def expand(obj: VecT) -> VecT:
+    ...
+
+
+def expand(
+    obj: Union[ValT, Equation, VecT]
+) -> Union[ValT, Equation, VecT]:
+    if isinstance(obj, Equation):
         # TODO: simplification that actually makes use of equality
-        return Equation(expand(expr_or_eqn.lhs), expand(expr_or_eqn.rhs))
+        return Equation(expand(obj.lhs), expand(obj.rhs))
+
+    elif isinstance(obj, Vec):
+        return obj.__class__(
+            obj.space,
+            sympy.expand(obj.val)
+        )
 
     else:
-        return expr_or_eqn.new(sympy.expand(expr_or_eqn.val))
+        return obj.__class__(
+            obj.units,
+            sympy.expand(obj.val)
+        )
 
 
 SubstitutionMap = Dict[Val, Q[Val]]
 
 
 @overload
-def subs(expr_or_eqn: GenericVal, substitutions: SubstitutionMap) -> GenericVal:
+def subs(obj: ValT, substitutions: SubstitutionMap) -> ValT:
     ...
 
 
 @overload
-def subs(expr_or_eqn: Equation, substitutions: SubstitutionMap) -> Equation:
+def subs(obj: Equation, substitutions: SubstitutionMap) -> Equation:
     ...
 
+@overload
+def subs(obj: VecT, substitutions: SubstitutionMap) -> VecT:
+    ...
 
 def subs(
-    expr_or_eqn: Union[GenericVal, Equation],
+    obj: Union[ValT, Equation, VecT],
     substitutions: SubstitutionMap,
-) -> Union[GenericVal, Equation]:
-    if isinstance(expr_or_eqn, Equation):
+) -> Union[ValT, Equation, VecT]:
+    if isinstance(obj, Equation):
         return Equation(
-            subs(expr_or_eqn.lhs, substitutions),
-            subs(expr_or_eqn.rhs, substitutions),
+            subs(obj.lhs, substitutions),
+            subs(obj.rhs, substitutions),
         )
 
     else:
@@ -94,6 +149,7 @@ def subs(
 
             sympy_subsmap[from_.val] = to.in_units(from_).val
 
-        return expr_or_eqn.__class__(
-            expr_or_eqn.units, expr_or_eqn.val.subs(sympy_subsmap)
+        return obj.__class__(
+            obj.units if isinstance(obj, Val) else obj.space,
+            obj.val.subs(sympy_subsmap) # type: ignore
         )

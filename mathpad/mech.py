@@ -22,7 +22,7 @@ def euler_lagrange(
 ) -> Equation:
     L = sum_kinetic_energy - sum_potential_energy
     ds = diff(state)
-    return diff(diff(L, wrt=ds)) - diff(L, wrt=state) == sum_non_conservative_forces
+    return diff(diff(L, wrt=ds), wrt=t) - diff(L, wrt=state) == sum_non_conservative_forces # type: ignore
 
 
 def impulse_momentum(
@@ -39,7 +39,7 @@ def impulse_momentum(
 def velocity_acceleration(
     v: Q[Velocity], t: Q[Time]  # symbol for time
 ) -> Acceleration:
-    return a == integral(v, t)
+    return integral(v, t)
 
 
 def force_momentum(
@@ -47,7 +47,7 @@ def force_momentum(
     v: Q[Velocity],
     t: Q[Time] = t,
 ) -> Force:
-    return diff(m * v)
+    return diff(m * v, t)
 
 
 def angular_momentum(

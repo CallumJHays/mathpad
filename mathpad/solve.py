@@ -2,7 +2,7 @@ from typing import Collection, Dict, Set, Tuple, Union, overload
 from ansitable import ANSITable
 import sympy
 
-from mathpad.val import Val, GenericVal
+from mathpad.val import Val, ValT
 from mathpad.equation import Equation
 
 
@@ -10,7 +10,7 @@ class Solution:
     def __init__(self, result_dict: Dict[Val, Val]):
         self.result_dict = result_dict
 
-    def __getitem__(self, k: GenericVal) -> GenericVal:
+    def __getitem__(self, k: ValT) -> ValT:
         result = self.result_dict[k]
         assert result.units == k.units
         return result
@@ -65,7 +65,7 @@ def solve(
 
     assert len(equations) >= len(
         solve_for
-    ), "Systems with less equations than unknowns are typically unsolveable"
+    ), "Systems with less equations than unknowns are typically unsolvable"
 
     ukwn_syms = [ukwn.val for ukwn in solve_for]
     val_eqns = [eqn.as_sympy_eq() for eqn in equations]
