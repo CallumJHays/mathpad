@@ -2,6 +2,19 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2022-10-05)
+### Feature
+* Update poetry deps ([`f48768e`](https://github.com/CallumJHays/mathpad/commit/f48768ef3ca05ca457a62ae1e87ad8349d18b2dc))
+* Implement vectors ([`81ec08b`](https://github.com/CallumJHays/mathpad/commit/81ec08bc4e7f73960ad7dec209fd0379cf4ce312))
+* Implement vectors ([`49b6d17`](https://github.com/CallumJHays/mathpad/commit/49b6d17073bb81a604946a3ba484fe7b908e3c39))
+
+### Fix
+* Cannot import 'Literal' from 'typing' in py3.7 (pt2) ([`a3877d7`](https://github.com/CallumJHays/mathpad/commit/a3877d7cd266894f8c8373be391a318499b24bc2))
+* Cannot import 'Literal' from 'typing' in py3.7 ([`8c96b68`](https://github.com/CallumJHays/mathpad/commit/8c96b684a280f0860b5f3f5bc47b5661fb63353a))
+
+### Documentation
+* Rewrite double pendulum example using vectors ([`787a6e5`](https://github.com/CallumJHays/mathpad/commit/787a6e57f466cb2b225f60c2cc1a959a8f9b7294))
+
 ## v0.1.10 (2021-10-24)
 ### Fix
 * Re-add kaleido as a dependency ([`c3cb26d`](https://github.com/CallumJHays/mathpad/commit/c3cb26d3af320fdc2ac27569815424b455c74edb))
