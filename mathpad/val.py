@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Any, Literal, Tuple, Type, Union, TypeVar, overload, Callable
+from typing import TYPE_CHECKING, Any, Tuple, Union, TypeVar, overload, Callable
 import re
 from abc import ABC
-from typing_extensions import Self
+from typing_extensions import Self, Literal
 
 import sympy
 import sympy.physics.units as su
