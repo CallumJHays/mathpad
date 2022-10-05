@@ -162,8 +162,20 @@ class Vec(Generic[VectorSpaceT]):
         return self.__class__(self.space, -self.val) # type: ignore
         
     def __abs__(self):
-        from mathpad.trigonometry import magnitude
-        return magnitude(*self) # type: ignore
+        """
+        Returns the norm / magnitude of this vector
+
+        Raises:
+            ValueError: if the vector does not have uniform dimensionality (each base_unit in the vector space must be equivalent)
+        """
+        from mathpad.functions import sqrt
+
+        try:
+            norm_squared = sum(val ** 2 for val in self)
+        except SumDimensionsMismatch:
+            raise ValueError("Cannot take the norm of a vector with non-uniform units")
+
+        return sqrt(norm_squared)
     
     def __mul__(self, other: Q[Val]):
         return Vec(
@@ -199,6 +211,7 @@ class Vec(Generic[VectorSpaceT]):
     
     # TODO: extend this to higher dimensions and other bases somehow
     # PS: technically cross product is only defined for 3D and 7D, but the concept of orthogonal basis vectors is more general
+    # TODO: should this only be defined for R3?
     def cross(self, other: Self) -> 'Vec':
         """
         Cross product of two vectors.

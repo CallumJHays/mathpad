@@ -14,19 +14,6 @@ def cos(x: Q[Angle]) -> Dimensionless:
 def tan(x: Q[Angle]) -> Dimensionless:
     return Dimensionless(1, sympy.tan(x.val))  # type: ignore
 
-
-def magnitude(*xs: Q[ValT]) -> ValT:
-    "x's are lengths in orthogonal directions. ie (i, j k)"
-    c_2 = 0
-    for x in xs:
-        c_2 += x ** 2
-    return sqrt(c_2)
-
-
-def hypotenuse(a: Q[Length], b: Q[Length]) -> Length:
-    return cartesian_distance(a, b)
-
-
 # TODO: add more trig functions
 
 
@@ -37,7 +24,7 @@ def sine_rule(
     beta: Q[Angle],  # internal angle opposite to side b
 ) -> Equation:
     "Relates lengths of two sides of any triangle the internal angle opposite"
-    return a == b * sin(alpha) / sin(beta)
+    return a == b * sin(alpha) / sin(beta) # type: ignore
 
 
 def cosine_rule(
@@ -46,4 +33,4 @@ def cosine_rule(
     c: Q[Length],  # length of side c
     C: Q[Angle],  # internal angle opposite to side c
 ) -> Equation:
-    return c ** 2 == a ** 2 + b ** 2 - 2 * a * b * cos(C)
+    return c ** 2 == a ** 2 + b ** 2 - 2 * a * b * cos(C) # type: ignore

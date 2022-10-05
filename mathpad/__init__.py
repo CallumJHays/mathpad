@@ -11,7 +11,7 @@ from mathpad.display import tabulate
 
 from mathpad.functions import piecewise, sqrt
 from mathpad.calculus import diff, integral
-from mathpad.trigonometry import cos, sin, tan, magnitude, hypotenuse
+from mathpad.trigonometry import cos, sin, tan
 from mathpad.vector_space import VectorSpace, R2, R3
 from mathpad.simulate_dynamic_system import simulate_dynamic_system
 
