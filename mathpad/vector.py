@@ -1,6 +1,6 @@
 
-from typing import Generic, Iterable, Literal, Sequence, Union, Any, TypeVar
-from typing_extensions import Self
+from typing import Generic, Iterable, Sequence, Union, Any, TypeVar
+from typing_extensions import Self, Literal
 
 from sympy.physics.vector import vlatex
 from sympy import MatrixSymbol, Matrix, MatrixExpr
