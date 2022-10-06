@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.1 (2022-10-06)
+### Fix
+* Now deleted import ([`cbc6ff9`](https://github.com/CallumJHays/mathpad/commit/cbc6ff9a2ea6a0d153f335d204cd5ee58f64c285))
+
 ## v0.2.0 (2022-10-05)
 ### Feature
 * Update poetry deps ([`f48768e`](https://github.com/CallumJHays/mathpad/commit/f48768ef3ca05ca457a62ae1e87ad8349d18b2dc))
