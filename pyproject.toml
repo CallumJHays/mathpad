@@ -28,10 +28,13 @@ typing-extensions = "^4.0.0"
 numpy = "^1.20"
 sympy = "^1.8"
 tqdm = "^4.62.3"
-ansitable = "^0.9.6"
 scipy = "^1.7.1"
 plotly = "^5.3.1"
-kaleido = "0.2.1"
+
+
+[tool.poetry.extras]
+# kaleido doesn't work on jupyterlite yet
+static_plots = ["kaleido==0.2.1"]
 
 
 [build-system]

@@ -1,5 +1,4 @@
-from typing import Collection, Dict, Set, Tuple, Union, overload
-from ansitable import ANSITable
+from typing import Collection, Dict, Union, overload
 import sympy
 
 from mathpad.val import Val, ValT
@@ -13,7 +12,7 @@ class Solution:
     def __getitem__(self, k: ValT) -> ValT:
         result = self.result_dict[k]
         assert result.units == k.units
-        return result
+        return result # type: ignore
 
     def __repr__(self):
         return self._repr("", " ")
@@ -27,14 +26,6 @@ class Solution:
             )
             + f"{newline}{' ' if not newline else ''})"
         )
-
-    def print(self):
-        table = ANSITable(
-            "  unknown  ", "  solutions  ", border="thick", bordercolor="green"
-        )
-        for k, v in self.result_dict.items():
-            table.row(k, v)
-        table.print()
 
 
 @overload
