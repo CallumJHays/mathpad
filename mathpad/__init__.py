@@ -7,7 +7,6 @@ from mathpad.solve import solve, Solution
 from mathpad.equation import Equation
 from mathpad._quality_of_life import t, g, pi, frac
 from mathpad.algebra import subs, simplify, factor, expand
-from mathpad.display import tabulate
 
 from mathpad.functions import piecewise, sqrt
 from mathpad.calculus import diff, integral
