@@ -46,16 +46,12 @@ def simulate_dynamic_system(
 
     verbose = verbose or display_explanation
 
-    if plot_static_figsize and not plot_static:
-        print(
-            "Warning: plot_static_figsize was set but plot_static was not enabled. Enabling for you automatically. Set plot_static=True to "
-        )
-
-    # make static renderings a certain size, the default one is too square for my liking
-    svg_renderer = pio.renderers["svg"]
-    width, height = plot_static_figsize
-    svg_renderer.width = width
-    svg_renderer.height = height
+    if plot_static:
+        # make static renderings a certain size, the default one is too square for my liking
+        svg_renderer = pio.renderers["svg"]
+        width, height = plot_static_figsize
+        svg_renderer.width = width
+        svg_renderer.height = height
 
     # TODO: support plotting on separate axes, and subplots
     # TODO: ensure we aren't subbing out something that is required for a 'record' output
