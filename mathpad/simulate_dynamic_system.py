@@ -15,7 +15,10 @@ from mathpad.val import Val
 from mathpad.equation import Equation
 from mathpad.algebra import subs, SubstitutionMap, simplify
 from mathpad._quality_of_life import t
-from tqdm.notebook import tqdm
+try:
+    from tqdm.notebook import tqdm
+except ImportError:
+    from tqdm import tqdm
 
 
 def simulate_dynamic_system(
@@ -250,18 +253,22 @@ def simulate_dynamic_system(
 
         t_prev = 0
 
-        with tqdm(total=x_f, leave=False) if display_progress_bar else None as pbar:
-            while integrator.status == "running":
-                msg = integrator.step()
+        pbar = tqdm(total=x_f, leave=False) if display_progress_bar else None
 
-                if integrator.status == "failed":
-                    print(f"integration completed with failed status: {msg}")
-                    break
+        while integrator.status == "running":
+            msg = integrator.step()
 
-                if pbar:
-                    dt = integrator.t - t_prev
-                    pbar.update(dt)
-                    t_prev = integrator.t
+            if integrator.status == "failed":
+                print(f"integration completed with failed status: {msg}")
+                break
+
+            if pbar:
+                dt = integrator.t - t_prev
+                pbar.update(dt)
+                t_prev = integrator.t
+        
+        if pbar:
+            pbar.close()
 
         _print_if(verbose, "Simulation finished. Plotting...")
 
