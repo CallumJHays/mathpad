@@ -128,7 +128,7 @@ class Vec(Generic[VectorSpaceT]):
         spacer_ltx = "\\hspace{1.25em}"
 
         if "Unknown" not in self.space.name:
-            vectorspace_ltx += "\\hspace{0.5em} \\text{{\\tiny w.r.t.} %s}" % self.space.name
+            vectorspace_ltx += "\\hspace{0.7em} \\text{wrt. %s}" % self.space.name
 
 
         return f"$$ {val_ltx} {spacer_ltx} {vectorspace_ltx} $$"
