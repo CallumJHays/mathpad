@@ -143,7 +143,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             self,
             other,
             lambda a, b: a / b,
-            f"Unknown{len(self)}D"
+            self.name
         )
     
     def __rtruediv__(self, other: Val) -> 'VectorSpace':
@@ -151,7 +151,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             other,
             self,
             lambda a, b: a / b,
-            f"Unknown{len(self)}D"
+            self.name
         )
     
     def __mul__(self, other: Val) -> 'VectorSpace':
@@ -159,7 +159,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             self,
             other,
             lambda a, b: a * b,
-            f"Unknown{len(self)}D"
+            self.name
         )
     
     def __rmul__(self, other: Val) -> 'VectorSpace':
@@ -167,7 +167,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             other,
             self,
             lambda a, b: a * b,
-            f"Unknown{len(self)}D"
+            self.name
         )
 
 VectorSpaceT = TypeVar("VectorSpaceT", bound=VectorSpace)
