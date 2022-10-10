@@ -24,11 +24,12 @@ jobs:
       - name: Build the JupyterLite site
         run: |
           cp -r examples/* jupyterlite/content/
-          jupyter lite build --contents jupyterlite/content --output-dir dist
+          cd jupyterlite
+          jupyter lite build --contents content --output-dir dist
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./dist
+          path: ./jupyterlite/dist
 
   deploy:
     needs: build
