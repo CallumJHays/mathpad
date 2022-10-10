@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.2 (2022-10-10)
+### Fix
+* Simulate_dynamic_system(display_progress_bar=False) ([`5108af7`](https://github.com/CallumJHays/mathpad/commit/5108af7d9cdae43715d08694b7a31fd35eacec02))
+
 ## v0.2.1 (2022-10-06)
 ### Fix
 * Now deleted import ([`cbc6ff9`](https://github.com/CallumJHays/mathpad/commit/cbc6ff9a2ea6a0d153f335d204cd5ee58f64c285))
