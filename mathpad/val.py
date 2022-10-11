@@ -331,7 +331,7 @@ class Val(ABC):
 
 
 ValT = TypeVar("ValT", bound=Val)
-Q = Union[ValT, Num, "Val"]
+Q = Union[ValT, Num, Val]
 
 
 class DimensionError(TypeError):

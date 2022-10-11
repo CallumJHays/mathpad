@@ -1,6 +1,7 @@
 {
     "python.pythonPath": "/home/cal/.conda/bin/python",
     "python.linting.flake8Enabled": false,
+    
     "python.formatting.provider": "black",
     "cortex-debug.armToolchainPath": "/usr/bin",
     "python.analysis.typeCheckingMode": "basic",

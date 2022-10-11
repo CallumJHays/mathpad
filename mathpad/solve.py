@@ -26,7 +26,7 @@ class Solution:
         if isinstance(result, Val):
             assert result.units == k.units
         elif isinstance(result, Vec):
-            assert result.space == k.space # type: ignore
+            assert result.space == k.units # type: ignore
         return result # type: ignore
 
     def __repr__(self):

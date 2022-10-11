@@ -1,7 +1,7 @@
-from typing import TypeVar, Union, overload, Dict
+from typing import ItemsView, KeysView, Protocol, TypeVar, Union, ValuesView, overload
 import sympy
 
-from mathpad.val import ValT, Val, Q
+from mathpad.val import ValT, Val
 from mathpad.vector import Vec, VecT
 from mathpad.equation import Equation
 
@@ -114,7 +114,16 @@ def expand(
         )
 
 
-SubstitutionMap = Dict[Union[Val, Vec], Union[Q[Val], Vec]]
+# Until a contravariant Map type is added to typing, we have to use this
+# https://github.com/python/typing_extensions/issues/5#issue-1241825018
+
+VecOrVal = TypeVar("VecOrVal", bound=Union[Val, Vec])
+VecOrvalQ = TypeVar("VecOrvalQ", bound=Union[Q[Val], Vec])
+
+class SubstitutionMap(Protocol[VecOrVal, VecOrvalQ]):
+    def keys(self) -> KeysView[VecOrVal]: ...
+    def items(self) -> ItemsView[VecOrVal, VecOrvalQ]: ...
+    def values(self) -> ValuesView[VecOrvalQ]: ...
 
 
 @overload
