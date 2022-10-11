@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mathpad"
-version = "0.2.2"
+version = "0.2.3"
 description = "Simplified interface to Sympy for solving physics, engineering and maths problems"
 authors = ["Callum J Hays <callumjhays@gmail.com>"]
 license = "MIT"
