@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.3 (2022-10-11)
+### Fix
+* Get examples working in jupyterlite ([`ce7d164`](https://github.com/CallumJHays/mathpad/commit/ce7d1640b069ff0d91f532679b0fe20a1468082a))
+* Don't show warning on plot_static=False ([`2711a13`](https://github.com/CallumJHays/mathpad/commit/2711a139fcff3c529583b8fb03de0caaa4327af0))
+* Retain frame ID in vectorspace operations ([`b4108e3`](https://github.com/CallumJHays/mathpad/commit/b4108e36707aa131e28da44120afac87d2daec95))
+* Don't use \\tiny latex (doesn't render properly sometimes) ([`2592392`](https://github.com/CallumJHays/mathpad/commit/25923927c9cebf2a3b64c41d398c453d6568956e))
+
+### Documentation
+* Add output simulation gifs back into examples ([`19e7eb3`](https://github.com/CallumJHays/mathpad/commit/19e7eb3a7127eeab5ba89ef8bab4552bcbb064d2))
+
 ## v0.2.2 (2022-10-10)
 ### Fix
 * Simulate_dynamic_system(display_progress_bar=False) ([`5108af7`](https://github.com/CallumJHays/mathpad/commit/5108af7d9cdae43715d08694b7a31fd35eacec02))
