@@ -38,7 +38,7 @@ class Val(ABC):
         val: Union[sympy.Expr, Num] = 1,
     ):
 
-        self.val: sympy.Symbol = sympy.sympify(val)
+        self.expr: sympy.Expr = sympy.sympify(val)
         self.units: su.Quantity = quantity_simplify(sympy.sympify(units))
 
         units_dimension = _units2dimensional_expr(self.units) # type: ignore
@@ -60,7 +60,7 @@ class Val(ABC):
             self.dimension = units_dimension
 
     def __hash__(self):
-        return hash(self.val)
+        return hash(self.expr)
 
     @overload
     def __eq__(self, other: "Val") -> "Equation":
@@ -82,33 +82,48 @@ class Val(ABC):
         return self._repr(True)
 
     # Rich displays; Ipython etc
-    def _repr_latex_(self):
+    def _repr_latex_(self, wrapped: bool = True):
         # use vlatex because it applies dot notation where possible
-        val_ltx = vlatex(self.val)
+
+        expr_str = str(self.expr.evalf())
+
+        # if this has an exponent
+        if 'e+' in expr_str:
+            # move the decimal place if the exponent is small
+            expr, exponent = expr_str.split('e+')
+            if int(exponent) < 5:
+                idx = expr.index('.')
+                expr_str = expr[:idx] + expr[idx+1:idx+1+int(exponent)] + '.' + expr[idx+1+int(exponent):]
+
+        if all(c in "0123456789." for c in expr_str):
+            if "." in expr_str:
+                # remove trailing zeros for whole numbers
+                whole, decimals = expr_str.split(".")
+                if all(d == '0' for d in decimals):
+                    expr_ltx = whole
+                else:
+                    expr_ltx = expr_str[:8] + ".."
+            else:
+                expr_ltx = expr_str
+        else:
+            expr_ltx = vlatex(self.expr)
         
         # remove '1.0's
-        clean_val_ltx = val_ltx.replace("- 1.0 ", "-")
+        clean_expr_ltx = expr_ltx.replace("- 1.0 ", "-")
         units_ltx = "dimensionless" if self.units == 1 else vlatex(self.units)
 
         spacer_ltx = "\\hspace{1.25em}"
 
-        return f"$$ {clean_val_ltx} {spacer_ltx} {units_ltx} $$"
+        full_ltx = f"{clean_expr_ltx} {spacer_ltx} {units_ltx}"
 
-    def _repr_png_(self):
-        return self.val._repr_png_()
-
-    def _repr_svg_(self):
-        return self.val._repr_svg_()
-
-    def _repr_disabled(self):
-        return self.val._repr_disabled()
+        return f"$$ {full_ltx} $$" if wrapped else full_ltx
 
     def _repr(self, with_units: bool) -> str:
         # ignore 0's following last non-zero decimal
         res = re.sub(
             r"(\d+\.\d*[^0])0+",
             r"\1",
-            str(self.val if _is_primitive_num(self.val) else self.val.evalf(6)),  # type: ignore
+            str(self.expr if _is_primitive_num(self.expr) else self.expr.evalf(6)),  # type: ignore
         )
         res = re.sub(r"\.0+([e\*]|$)", r"\1", res)
 
@@ -146,7 +161,7 @@ class Val(ABC):
         units_factor, new_units = _split_coeff_and_units(
             convert_to(self.units, new_units)  # type: ignore
         )
-        new_val = units_factor * self.val
+        new_val = units_factor * self.expr
 
         return self.__class__(new_units, new_val)
 
@@ -163,7 +178,7 @@ class Val(ABC):
         return self._sum_op(other, lambda a, b: b - a, "-", True)
 
     def __neg__(self):
-        return self.__class__(self.units, -self.val) # type: ignore
+        return self.__class__(self.units, -self.expr) # type: ignore
 
     def __mul__(self, other: "Q[Val]") -> "Val":
         return self._prod_op(other, lambda a, b: a * b, is_pow=False)
@@ -171,7 +186,7 @@ class Val(ABC):
     def __rmul__(self, other: Union[Num, str]) -> Self:
 
         if isinstance(other, str):
-            assert self.val == 1, "Attempted to create variable with a non-unit Val"
+            assert self.expr == 1, "Attempted to create variable with a non-unit Val"
 
             # TODO: support variables which are functions of a symbol other than t. should this be a fn() fn?
             if "(" in other:
@@ -232,7 +247,7 @@ class Val(ABC):
         assert not isinstance(other, Vec)
 
         other_units, other_val = (
-            (other.units, other.val) if isinstance(other, Val) else (self.units, other)
+            (other.units, other.expr) if isinstance(other, Val) else (self.units, other)
         )
 
         if isinstance(other, Val):
@@ -249,7 +264,7 @@ class Val(ABC):
         new_units = other_units if use_other_units else self.units
 
         self_val_rescaled = (
-            self.val / other_units_rescale_factor if use_other_units else self.val
+            self.expr / other_units_rescale_factor if use_other_units else self.expr
         )
         other_val_rescaled = (
             other_val if use_other_units else other_val * other_units_rescale_factor
@@ -281,14 +296,14 @@ class Val(ABC):
             return NotImplemented
 
         other_units, other_val = (
-            (other.units, other.val)
+            (other.units, other.expr)
             if isinstance(other, Val)
             else (other if is_pow else 1, other)
         )
 
         rescale_factor, new_units = _split_coeff_and_units(op(self.units, other_units))
 
-        new_val = rescale_factor * op(self.val, other_val)
+        new_val = rescale_factor * op(self.expr, other_val)
         if isinstance(new_val, sympy.Expr):
             new_val = quantity_simplify(new_val)
 

@@ -1,4 +1,4 @@
-from typing import Union, overload, Dict
+from typing import TypeVar, Union, overload, Dict
 import sympy
 
 from mathpad.val import ValT, Val, Q
@@ -30,13 +30,13 @@ def simplify(obj: Union[ValT, Equation, VecT]) -> Union[ValT, Equation, VecT]:
     elif isinstance(obj, Vec):
         return obj.__class__(
             obj.space,
-            sympy.simplify(obj.val) # type: ignore
+            sympy.simplify(obj.expr) # type: ignore
         )
 
     else:
         return obj.__class__(
             obj.units,
-            sympy.simplify(obj.val)
+            sympy.simplify(obj.expr)
         )
 
 
@@ -69,13 +69,13 @@ def factor(
             
         return obj.__class__(
             obj.space,
-            sympy.factor(obj.val)
+            sympy.factor(obj.expr)
         )
 
     else:
         return obj.__class__(
             obj.units,
-            sympy.factor(obj.val) # type: ignore
+            sympy.factor(obj.expr) # type: ignore
         )
 
 
@@ -104,17 +104,17 @@ def expand(
     elif isinstance(obj, Vec):
         return obj.__class__(
             obj.space,
-            sympy.expand(obj.val)
+            sympy.expand(obj.expr)
         )
 
     else:
         return obj.__class__(
             obj.units,
-            sympy.expand(obj.val)
+            sympy.expand(obj.expr)
         )
 
 
-SubstitutionMap = Dict[Val, Q[Val]]
+SubstitutionMap = Dict[Union[Val, Vec], Union[Q[Val], Vec]]
 
 
 @overload
@@ -144,12 +144,12 @@ def subs(
         sympy_subsmap = {}
 
         for from_, to in substitutions.items():
-            if not isinstance(to, Val):
+            if not isinstance(to, (Val, Vec)):
                 to = from_.__class__(from_.units, to)
 
-            sympy_subsmap[from_.val] = to.in_units(from_).val
+            sympy_subsmap[from_.expr] = to.in_units(from_ if isinstance(from_, Val) else from_.space).expr
 
         return obj.__class__(
             obj.units if isinstance(obj, Val) else obj.space,
-            obj.val.subs(sympy_subsmap) # type: ignore
+            obj.expr.subs(sympy_subsmap) # type: ignore
         )

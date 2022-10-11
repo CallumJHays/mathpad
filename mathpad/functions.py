@@ -13,7 +13,7 @@ def piecewise(x: Val, region_vals: List[Tuple[float, Q[ValT]]]) -> ValT:
     prev_val: Optional[ValT] = None
     for lt, val in region_vals:
         rescaled = val.in_units(prev_val) if prev_val is not None else val
-        inp.append((rescaled.val, x.val < lt))
+        inp.append((rescaled.expr, x.expr < lt))
         prev_val = val
     
     assert prev_val

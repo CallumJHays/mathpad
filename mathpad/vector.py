@@ -29,11 +29,11 @@ class Vec(Generic[VectorSpaceT]):
 
         if isinstance(vals, MatrixExpr):
             # vals is the result of a matrix operation. It should be good to use as-is
-            self.val = vals # type: ignore
+            self.expr = vals # type: ignore
         
         elif isinstance(vals, str):
             # construct a symbolic vector
-            self.val: MatrixSymbol = MatrixSymbol(vals, len(vector_space.base_units), 1) # type: ignore
+            self.expr: MatrixSymbol = MatrixSymbol(vals, len(vector_space.base_units), 1) # type: ignore
         
         else:
             # TODO: make this error message more obviously related to the vector-spaces
@@ -41,7 +41,7 @@ class Vec(Generic[VectorSpaceT]):
                 if isinstance(val, Val):
                     DimensionError.check(val, unit) # type: ignore
 
-            self.val: Matrix = Matrix([val.val if isinstance(val, Val) else val for val in vals]) # type: ignore
+            self.expr: Matrix = Matrix([val.expr if isinstance(val, Val) else val for val in vals]) # type: ignore
     
     def in_units(self, space: VectorSpaceT) -> 'Vec':
         """
@@ -51,18 +51,21 @@ class Vec(Generic[VectorSpaceT]):
         return Vec(space, [
             Val(base_units.units, expr).in_units(new_units)
             for expr, base_units, new_units in zip(
-                self.val, # type: ignore
+                self.expr, # type: ignore
                 self.space.base_units,
                 space.base_units
             )
         ])
     
-    def __eq__(self, other: Self) -> "Equation":
+    def __eq__(self, other: 'Vec') -> "Equation":
         
         for a, b in zip(self.space.base_units, other.space.base_units):
             SumDimensionsMismatch.check(a, "==", b) # type: ignore
 
         return Equation(self, other)
+    
+    def __hash__(self):
+        return hash((self.expr, self.space))
     
     def __add__(self, other: Self) -> Self:
         "self + other"
@@ -82,7 +85,7 @@ class Vec(Generic[VectorSpaceT]):
         # self_mat = self.val.as_explicit() if isinstance(self.val, MatrixSymbol) else self.val
         # other_mat = other.val.as_explicit() if isinstance(other.val, MatrixSymbol) else other.val
         
-        return self.__class__(self.space, self.val + other.val) # type: ignore
+        return self.__class__(self.space, self.expr + other.expr) # type: ignore
     
     def __sub__(self, other: Self) -> Self:
         "self - other"
@@ -93,73 +96,49 @@ class Vec(Generic[VectorSpaceT]):
         assert self.space is other.space, \
             f"Cannot subtract vectors of different VectorSpaces: {self.space} - {other.space}"
 
-        return self.__class__(self.space, self.val - other.val) # type: ignore
+        return self.__class__(self.space, self.expr - other.expr) # type: ignore
     
-    def _repr_latex_(self):
-        # use vlatex because it applies dot notation where possible
-        # & {"dimensionless" if val.units == 1 else vlatex(val.units)}'
+    def _repr_latex_(self, wrapped: bool = True):
 
-        def latex_vec(
-            bits: Iterable[Any],
-            type: Literal["{bmatrix}", "{matrix}"]
-        ):
-            return (
-            f"\\begin{type} "
+        # TODO: get vlatex() to display the MatrixSymbol as a \vec{} always
+        # vlatex(self.expr) if isinstance(self.expr, MatrixSymbol) else 
+        expr_ltx = (
+            "\\begin{bmatrix} "
             + " \\\\ ".join(
-                f'{vlatex(bit.val).replace("- 1.0 ", "-")}'
-                    if isinstance(bit, Val) else str(bit)
-                for bit in bits
+                # use vlatex because it applies dot notation where possible
+                f'{vlatex(el.expr).replace("- 1.0 ", "-")}'
+                    if isinstance(el, Val) else str(el)
+                for el in self
             )
-            + f" \\end{type}"
+            + " \\end{bmatrix}"
         )
-
-        # def reformat_units(units: Iterable[Any]):
-        #     return re.sub(
-        #         r"(.*?[a-zA-Z])(\/|\*\*|$)", r"\1s\2", str(units), 1
-        #     )
-
-        val_ltx = latex_vec(self, "{bmatrix}")
         
-        vectorspace_ltx = latex_vec(
-            (vlatex(v.units) for v in self.space.base_units),
-            "{matrix}"
-        )
+        vectorspace_ltx = self.space._repr_latex_(wrapped=False)
         
         spacer_ltx = "\\hspace{1.25em}"
 
-        if "Unknown" not in self.space.name:
-            vectorspace_ltx += "\\hspace{0.7em} \\text{wrt. %s}" % self.space.name
+        full_ltx = f"{expr_ltx} {spacer_ltx} {vectorspace_ltx}"
 
-
-        return f"$$ {val_ltx} {spacer_ltx} {vectorspace_ltx} $$"
-
-    def _repr_png_(self):
-        return self.val._repr_png_()
-
-    def _repr_svg_(self):
-        return self.val._repr_svg_()
-
-    def _repr_disabled(self):
-        return self.val._repr_disabled()
+        return f"$$ {full_ltx} $$" if wrapped else full_ltx
     
     def __iter__(self):
         return (
             Val(unit.units, val)
             for unit, val
-            in zip(self.space.base_units, self.val) # type: ignore
+            in zip(self.space.base_units, self.expr) # type: ignore
         )
     
     def __len__(self):
-        return self.val.shape[0] # type: ignore
+        return self.expr.shape[0] # type: ignore
     
     def __getitem__(self, index: int) -> Val:
         return Val(
             self.space.base_units[index].units,
-            self.val[index]
+            self.expr[index]
         )
     
     def __neg__(self) -> Self:
-        return self.__class__(self.space, -self.val) # type: ignore
+        return self.__class__(self.space, -self.expr) # type: ignore
         
     def __abs__(self):
         """
@@ -180,8 +159,8 @@ class Vec(Generic[VectorSpaceT]):
     def __mul__(self, other: Q[Val]):
         return Vec(
             (self.space * other) if isinstance(other, Val) else self.space,
-            self.val * (
-                other.val if isinstance(other, Val) else other # type: ignore
+            self.expr * (
+                other.expr if isinstance(other, Val) else other # type: ignore
             )
         )
     
@@ -191,16 +170,16 @@ class Vec(Generic[VectorSpaceT]):
     def __truediv__(self, other: Q[Val]):
         return Vec(
             (self.space / other) if isinstance(other, Val) else self.space,
-            self.val / (other.val if isinstance(other, Val) else other)
+            self.expr / (other.expr if isinstance(other, Val) else other)
         )
     
     def __str__(self) -> str:
         # TODO: make this output more readable for MatrixExpr's
         nl = "\n"
         nltab = "\n\t"
-        val_str = f'["{str(self.val).replace(nl, nltab)}"]' \
-            if isinstance(self.val, (MatrixSymbol, MatrixExpr)) \
-            else str([val for val in self.val])
+        val_str = f'["{str(self.expr).replace(nl, nltab)}"]' \
+            if isinstance(self.expr, (MatrixSymbol, MatrixExpr)) \
+            else str([val for val in self.expr])
         return f"{self.space.name}{val_str}"
     
     def _repr(self, _with_units: bool) -> str:
@@ -232,11 +211,11 @@ class Vec(Generic[VectorSpaceT]):
         out_space = self.space * other.space # type: ignore
 
         # MatrixSymbol doesn't have the .cross() method - convert to explicit (MatrixExpr) first
-        self_val = self.val.as_explicit() if isinstance(self.val, MatrixSymbol) else self.val
+        self_val = self.expr.as_explicit() if isinstance(self.expr, MatrixSymbol) else self.expr
 
         return Vec(
             out_space,
-            self_val.cross(other.val) # type: ignore
+            self_val.cross(other.expr) # type: ignore
         )
     
     def dot(self, other: 'Vec[Any]') -> Val:
@@ -246,8 +225,8 @@ class Vec(Generic[VectorSpaceT]):
             self.space.base_units[0] * other.space.base_units[0]
         ).units
 
-        self_val_matrix = self.val if isinstance(self.val, Matrix) else Matrix(self.val)
-        other_val_matrix = other.val if isinstance(other.val, Matrix) else Matrix(other.val)
+        self_val_matrix = self.expr if isinstance(self.expr, Matrix) else Matrix(self.expr)
+        other_val_matrix = other.expr if isinstance(other.expr, Matrix) else Matrix(other.expr)
 
         return Val(
             out_units,
@@ -259,7 +238,7 @@ class Vec(Generic[VectorSpaceT]):
         
         return Vec(
             self.space / wrt,
-            self.val.diff((wrt.val, n)) # type: ignore
+            self.expr.diff((wrt.expr, n)) # type: ignore
         )
     
     def integrate(self, wrt: Val = t):
@@ -267,7 +246,7 @@ class Vec(Generic[VectorSpaceT]):
 
         return Vec(
             self.space * wrt,
-            self.val.integrate(wrt.val)
+            self.expr.integrate(wrt.expr)
         )
     
     def __getattr__(self, name: str) -> Val:
@@ -291,7 +270,7 @@ class Vec(Generic[VectorSpaceT]):
             idx = self.space.base_names.index(name)
             return Val(
                 self.space.base_units[idx].units,
-                self.val[idx]
+                self.expr[idx]
             )
             
         else:

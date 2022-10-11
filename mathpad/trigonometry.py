@@ -4,15 +4,15 @@ from mathpad import *
 
 
 def sin(x: Q[Angle]) -> Dimensionless:
-    return Dimensionless(1, sympy.sin(x.val))  # type: ignore
+    return Dimensionless(1, sympy.sin(x.expr))  # type: ignore
 
 
 def cos(x: Q[Angle]) -> Dimensionless:
-    return Dimensionless(1, sympy.cos(x.val))  # type: ignore
+    return Dimensionless(1, sympy.cos(x.expr))  # type: ignore
 
 
 def tan(x: Q[Angle]) -> Dimensionless:
-    return Dimensionless(1, sympy.tan(x.val))  # type: ignore
+    return Dimensionless(1, sympy.tan(x.expr))  # type: ignore
 
 # TODO: add more trig functions
 

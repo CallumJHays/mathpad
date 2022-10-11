@@ -10,9 +10,10 @@ from typing import (
 from typing_extensions import Self, TypeVarTuple, Unpack
 
 from sympy import Matrix
+from sympy.physics.vector import vlatex
 
 from mathpad.dimensions import Angle, Length
-from mathpad.val import Dimensionless, Val, Q
+from mathpad.val import Val, Q
 from mathpad.units import meter
 
 if TYPE_CHECKING:
@@ -48,7 +49,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             assert isinstance(unit, Val), \
                 f"Base units of {cls.__name__} must be instances of Val, got {unit}"
             
-            assert unit.val == 1, \
+            assert unit.expr == 1, \
                 f"Base units of {cls.__name__} must have a value of 1, got {unit}"
 
     def __getattr__(self, name: str):
@@ -68,9 +69,12 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
 
         """
 
-        assert name in self.base_names, \
-            f"{name} is not a base name of {self.__class__}" \
-            f" (base names are {self.base_names})"
+        if not name in self.base_names:
+            raise AttributeError(
+                f"{name} is not a base name of {self.__class__}" \
+                f" (base names are {self.base_names})"
+            )
+            
 
         res = [0] * len(self)
         res[self.base_names.index(name)] = 1
@@ -107,6 +111,23 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
     def sym(self, name: str):
         from mathpad.vector import Vec
         return Vec(self, name)
+    
+    def _repr_latex_(self, wrapped: bool = True):
+        
+        units_ltx = (
+            "\\begin{matrix} "
+            + " \\\\ ".join(
+                # use vlatex because it applies dot notation where possible
+                "\hat{%s} " % base_name +
+                f'\cdot {vlatex(base_unit.units).replace("- 1.0 ", "-")}' # type: ignore
+                for base_name, base_unit in zip(self.base_names, self.base_units)
+            )
+            + " \\end{matrix}"
+        )
+        full_ltx = "%s \\hspace{0.7em} \\text{wrt. %s}" % (units_ltx, self.name)
+
+        return f"$$ {full_ltx} $$" if wrapped else full_ltx
+
     
     @classmethod
     def _get_output_space(

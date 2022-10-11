@@ -29,7 +29,7 @@ def diff(
         return Vec(out_space, [diff(v, order, wrt=wrt) for v in val])
 
     val_units = val.units if isinstance(val, Val) else val
-    val_val = val.val if isinstance(val, Val) else sympy.sympify(val)
+    val_val = val.expr if isinstance(val, Val) else sympy.sympify(val)
 
     new_units = val_units
     for _ in range(order):
@@ -37,7 +37,7 @@ def diff(
 
     res = Val(
         new_units, # type: ignore
-        val_val.diff((wrt.val, order))  # type: ignore
+        val_val.diff((wrt.expr, order))  # type: ignore
     )
 
     if _global_options.auto_simplify:
@@ -111,9 +111,9 @@ def integral(
         )
 
     val_units = val.units if isinstance(val, Val) else val
-    val_val = val.val if isinstance(val, Val) else Val
+    val_val = val.expr if isinstance(val, Val) else Val
 
-    integrand = (wrt.val, *between) if between else wrt.val 
+    integrand = (wrt.expr, *between) if between else wrt.expr 
 
     res = Val(
         val_units * wrt.units, # type: ignore

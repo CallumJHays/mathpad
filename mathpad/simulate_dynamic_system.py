@@ -24,7 +24,7 @@ except ImportError:
 def simulate_dynamic_system(
     dynamics_equations: Collection[Equation],
     *,
-    x_f: float,
+    x_final: float,
     initial_conditions: SubstitutionMap,
     record: List[Val],
     max_step: Optional[float],
@@ -64,10 +64,11 @@ def simulate_dynamic_system(
         print("Using Input Equations:")
         for eqn in dynamics_equations:
             display(eqn)
-
-        print("Subbing in Values:")
-        for replace, _with in substitute.items():
-            display(replace == _with)
+        
+        if substitute:
+            print("Subbing in Values:")
+            for replace, _with in substitute.items():
+                display(replace == _with)
 
     # pre-substitute and simplify the input equations before further processing
     problem_eqns = [simplify(subs(eqn, substitute)) for eqn in dynamics_equations]
@@ -105,12 +106,12 @@ def simulate_dynamic_system(
             lowest_derivatives[f] = lvl
 
     solve_for_highest_derivatives = [
-        fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
+        fn if lvl == 0 else sympy.diff(fn, (x_axis.expr, lvl))
         for fn, lvl in highest_derivatives.items()
         if not lvl == lowest_derivatives[fn]
     ]
 
-    solve_for_recorded_data = [val.val for val in record]
+    solve_for_recorded_data = [val.expr for val in record]
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
@@ -159,7 +160,7 @@ def simulate_dynamic_system(
             unknowns.update(val.free_symbols)
 
         # since we're simulating along the x_axis, it doesn't count as an unknown here
-        unknowns.remove(x_axis.val)
+        unknowns.remove(x_axis.expr)
 
         assert not any(
             unknowns
@@ -179,7 +180,7 @@ def simulate_dynamic_system(
 
             input_unzipped.append(
                 [
-                    fn if lvl == 0 else sympy.diff(fn, (x_axis.val, lvl))
+                    fn if lvl == 0 else sympy.diff(fn, (x_axis.expr, lvl))
                     for lvl in range(lowest_lvl, highest_lvl)
                 ]
             )
@@ -194,7 +195,7 @@ def simulate_dynamic_system(
 
         # outputs are highest of input derviatives plus recorded data
         # ie [dddx, record[0], record[1]]
-        lambdified = lambdify([x_axis.val, inputs], solution_vec)
+        lambdified = lambdify([x_axis.expr, inputs], solution_vec)
 
         data = []
 
@@ -229,17 +230,17 @@ def simulate_dynamic_system(
 
             replacement = initial_conditions[val]
             if isinstance(replacement, Val):
-                val = float(replacement.in_units(val).val)
+                val = float(replacement.in_units(val).expr)
             else:
                 val = replacement
 
             y0.append(val)
 
-        integrator = RK45(step, t0=0, y0=y0, t_bound=x_f, max_step=max_step)
+        integrator = RK45(step, t0=0, y0=y0, t_bound=x_final, max_step=max_step)
 
         _print_if(
             verbose,
-            f"Simulating from t=0 to t={x_f} with a max_step of {max_step}"
+            f"Simulating from t=0 to t={x_final} with a max_step of {max_step}"
             + (" with initial conditions:" if display_explanation else "."),
         )
 
@@ -249,7 +250,7 @@ def simulate_dynamic_system(
 
         t_prev = 0
 
-        pbar = tqdm(total=x_f, leave=False) if display_progress_bar else None
+        pbar = tqdm(total=x_final, leave=False) if display_progress_bar else None
 
         while integrator.status == "running":
             msg = integrator.step()

@@ -20,7 +20,7 @@ def test_solve1_meters_eq_float():
     res = solve(a == float_val, a)
 
     assert isinstance(res, Solution)
-    assert res[a].val == float_val
+    assert res[a].expr == float_val
     assert res[a].units == a.units
 
 

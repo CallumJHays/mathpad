@@ -5,6 +5,57 @@ from mathpad.val import Unit, Dimensionless
 
 # TODO: rearrange in alphabetical order
 
+__all__ = [
+    "Dimensionless",
+    "Length",
+    "Time",
+    "AngularMomentum",
+    "AngularVelocity",
+    "MomentOfInertia",
+    "Impedance",
+    "Resistivity",
+    "Inductance",
+    "Capacitance",
+    "Mass",
+    "Angle",
+    "AngularMil",
+    "SteRadian",
+    "Frequency",
+    "Current",
+    "Action",
+    "AmountOfSubstance",
+    "Radioactivity",
+    "Charge",
+    "Dioptre",
+    "Lumosity",
+    "GravityConstant",
+    "Gray",
+    "Energy",
+    "Temperature",
+    "Force",
+    "Elasticity",
+    "Pressure",
+    "MolarGasConstant",
+    "Conductance",
+    "MagneticDensity",
+    "MagneticFlux",
+    "Voltage",
+    "Power",
+    "Acceleration",
+    "Information",
+    "Velocity",
+    "LuminousIntensity",
+    "Area",
+    "Volume",
+    "Permittivity",
+    "Katal",
+    "Illuminance",
+    "Density",
+    "EnergyDensity",
+    "PlanckIntensity",
+    "Momentum"
+]
+
 
 class Length(Unit):
     dimension = d.length
@@ -67,6 +118,7 @@ class SteRadian(Angle):
 
 
 class Frequency(Unit):
+    # TODO: does this make sense as a dimension?
     dimension = d.frequency
 
 
@@ -79,6 +131,7 @@ class Action(Unit):
 
 
 class AmountOfSubstance(Unit):
+    # TODO: difference between this and Mass?
     dimension = d.amount_of_substance
 
 
@@ -131,7 +184,7 @@ class Pressure(Unit):
 
 
 class MolarGasConstant(Unit):
-    # useful to name this as a specific dimension; but is only ever a constant (defined in constants.py)
+    # Is only ever used to define a constant (in constants.py)
     dimension = d.energy / (d.amount_of_substance * d.temperature)
 
 
@@ -184,7 +237,7 @@ class Permittivity(Unit):
 
 
 class Katal(Unit):
-    # Otherwise 'catalytic activity'
+    "Also known as 'catalytic activity'"
     dimension = d.amount_of_substance / d.time
 
 
