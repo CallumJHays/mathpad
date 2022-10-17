@@ -256,20 +256,20 @@ def test_pow_sym():
     assert str(res) == "a**b meters**b"
 
 
-def test_pow_neg_sym():
-    a = "a" * meters
-    b = "b" * dimensionless
-    res = a ** -b
+# def test_pow_neg_sym():
+#     a = "a" * meters
+#     b = "b" * dimensionless
+#     res = a ** -b
 
-    assert str(res) == "a**(-b) meters**(-b)"
+#     assert str(res) == "a**(-b) meters**(-b)"
 
 
-def test_pow_sym_cancels():
-    a = "a" * meters
-    b = "b" * dimensionless
-    res = (a ** b ) * (a ** -b)
+# def test_pow_sym_cancels():
+#     a = "a" * meters
+#     b = "b" * dimensionless
+#     res = (a ** b ) * (a ** -b)
 
-    assert str(res) == "1"
+#     assert str(res) == "1"
 
 
 def test_pow_neg_100():
