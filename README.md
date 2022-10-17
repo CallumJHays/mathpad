@@ -31,31 +31,28 @@
   <img src="https://img.shields.io/pypi/l/mathpad.svg?style=flat-square" alt="License">
 </p> -->
 
-Type-hinted, simplified interface to `sympy` for solving engineering, science and maths problems.
+MathPad is a a Python library that makes it easy to solve engineering, science and maths problems.
 
-Automatically handles unit conversion & dimensionality checking ('spellcheck') for math operations.
+MathPad is ideal for engineering students and academics seeking to easily check their work or better understand the mathematical models and equations they are working with.
 
-Also includes scipy-based simulation functions (RK46, etc) for evaluating nonlinear models.
+[Sandbox Demo](https://callumjhays.github.io/mathpad/lab?path=Walkthrough.ipynb)
 
-## Example
 
-A car is driving at 5 miles per hour. The driver hits the brakes,
-decelerating at a rate of 2 meters per second squared. How long will the car take to come to come to a halt?
 
-```python
-from mathpad import *
 
-t = "t" * seconds  # "t seconds"
+Features:
+- Intuitive interface for those unfamiliar with Python
+- Easy-to-use construction of systems of equations - goodbye hand calculations!
+- Self-explanatory latex output
+- Automatic dimensionality validity checking
+- Automatic unit conversion
+- Easy simulation of differential systems of equations / initial value problem
+- Growing library of equations and constants to utilize
 
-velocity = 5 * miles / hour  # "5 miles/hour"
+## Documentation
 
-deceleration = 2 * m / s ** 2  # "2 meters/second**2"
+Currently the only documentation is `Walkthrough.ipynb`. You can access it on the [JupyterLite Sandbox Site here](https://callumjhays.github.io/mathpad/lab?path=Walkthrough.ipynb)
 
-solution = solve(t, t == velocity / deceleration)
-print(solution) # "Solution(t = 1.1176 seconds)"
-```
-
-Check out more examples in the [Examples directory](./examples/)
 
 ## Installation
 
