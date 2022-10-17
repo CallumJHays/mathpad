@@ -375,7 +375,7 @@ class Val:
         return res
 
 
-ValT = TypeVar("ValT", bound=Val, contravariant=True)
+ValT = TypeVar("ValT", bound=Val)
 Q = Union[ValT, Num, Val]
 "Any Val, specific or not - or a number"
 X = Union[ValT, Val]

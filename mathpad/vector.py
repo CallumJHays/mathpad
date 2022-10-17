@@ -325,7 +325,7 @@ class Vector(Generic[VectorSpaceT]):
             return self._expr1.dot(self._expr2, **hints) # type: ignore
 
 
-VecT = TypeVar('VecT', bound=Vector, contravariant=True)
+VecT = TypeVar('VecT', bound=Vector)
 
 def _broken_rtruediv(_self: Vector, other: Q[Val]):
     "Make it obvious that this is impossible, but don't let the type checker know this method is implemented"
