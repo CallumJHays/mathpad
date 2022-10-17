@@ -1,6 +1,7 @@
 
 
-from typing import Any, Callable, ItemsView, KeysView, Protocol, TypeVar, Union, ValuesView, overload
+from typing import Any, Callable, ItemsView, KeysView, TypeVar, Union, ValuesView
+from typing_extensions import Protocol
 from sympy.utilities.lambdify import lambdify
 import numpy
 from numpy.typing import ArrayLike, NDArray
