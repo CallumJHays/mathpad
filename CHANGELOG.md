@@ -2,6 +2,22 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2022-10-17)
+### Feature
+* Add matrices and complete Walkthrough.ipynb ([`6aad4ea`](https://github.com/CallumJHays/mathpad/commit/6aad4eabe2bf53fd89c0b7732d1663f006ea8c0e))
+
+### Fix
+* **py37:** Import Protocol from typing_extensions ([`b8d0e95`](https://github.com/CallumJHays/mathpad/commit/b8d0e95a96c64adda56a19efdb9309238cd29efb))
+* **types:** Undo contravariance for Generic Vec and Val types ([`882c09e`](https://github.com/CallumJHays/mathpad/commit/882c09e1f112fe6b993dd2b45b509476b8759539))
+* Make SubstitutionMap keys and vals covariant per pyright's recommendation ([`94ceba3`](https://github.com/CallumJHays/mathpad/commit/94ceba3af36787e0067b70eb8fda6e083a164b83))
+* Replace SubstitutionMap with contravariant equivalent and fix examples ([`462f670`](https://github.com/CallumJHays/mathpad/commit/462f670ccf532be6c0b41c190ff4489a371ec501))
+
+### Breaking
+* Replace SubstitutionMap with contravariant equivalent and fix examples ([`462f670`](https://github.com/CallumJHays/mathpad/commit/462f670ccf532be6c0b41c190ff4489a371ec501))
+
+### Documentation
+* Update walkthrough and readme ([`d6dc4ee`](https://github.com/CallumJHays/mathpad/commit/d6dc4ee9f534797b3978d3b38abf8a7af3b916f1))
+
 ## v0.2.3 (2022-10-11)
 ### Fix
 * Get examples working in jupyterlite ([`ce7d164`](https://github.com/CallumJHays/mathpad/commit/ce7d1640b069ff0d91f532679b0fe20a1468082a))
