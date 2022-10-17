@@ -1,6 +1,11 @@
 from mathpad import *
 
-from _test_utils import _expect_assertion_error
+from _test_utils import expect_err
+
+def test_R3_anonymous():
+    vec = R3()[1, 2, 3]
+
+    assert str(vec) == "[1, 2, 3]"
 
 def test_R3_basis_constructors():
     O = R3("O")
@@ -20,37 +25,33 @@ def test_VectorSpace_constructor():
     assert vec.k == 3
 
 def test_VectorSpace_abstract_only():
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         VectorSpace("O")
 
 def test_R3_disp():
     O = R3("O")
     
-    assert str(O) == "<O: R3>"
+    assert str(O) == '<R3 name="O">'
+    assert str(R3()) == '<R3>'
 
 
 def test_must_specify_base_units():
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         class MyVecSpace(VectorSpace[Length]):
             base_names = "i",
 
 def test_must_specify_base_names():
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         class MyVecSpace(VectorSpace[Length]):
             base_units = meter,
 
 def test_must_specify_base_both():
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         class MyVecSpace(VectorSpace):
             pass
 
 def test_base_names_must_match_base_units():
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         class MyVecSpace(VectorSpace):
             base_units = meter, meter # type: ignore
             base_names = "i",

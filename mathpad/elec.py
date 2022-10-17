@@ -1,14 +1,63 @@
-# from typing import Annotated as An, get_type_hints
-
+from typing import List
 from mathpad import *
-
 
 def resistance_resistivity(
     *,
-    R: Q[Impedance],  # resistance
-    rho: Q[Resistivity],  # resisitivity
-    l: Q[Length],  # length of strip
-    A: Q[Area]  # cross-sectional area of strip (usually very flat, but wide(ish))
-):
+    R: X[Impedance],  # resistance
+    rho: X[Resistivity],  # resisitivity
+    l: X[Length],  # length of strip
+    A: X[Area]  # cross-sectional area of strip (usually very flat, but wide(ish))
+) -> Equation:
     "Relate resistance and resistivity"
     return R == rho * l * A
+
+
+def ohms_law(
+    *,
+    R: X[Impedance],  # resistance
+    V: X[Voltage],  # voltage
+    I: X[Current]  # current
+) -> Equation:
+    """
+    Ohm's law:
+    
+    V == I * R
+    """
+    return V == I * R
+
+def kerchoffs_voltage_law(
+    *,
+    producers: List[X[Voltage]],  # voltage sources
+    consumers: List[X[Voltage]],  # voltage drops
+) -> Equation:
+    """
+    Kirchoff's voltage law. 
+
+    The sum of voltage sources is equal to the sum of voltage drops.
+    
+    sum(producers) == sum(consumers)
+
+    """
+
+    assert producers or consumers, "At least one voltage must be specified"
+
+    return sum(producers) == sum(consumers) # type: ignore - assert should prevent both being 0 length lists
+
+
+def kerchoffs_current_law(
+    *,
+    into: List[X[Current]],  # current into node
+    out: List[X[Current]],  # current
+) -> Equation:
+    """
+    Kirchoff's current law. 
+
+    The sum of currents into a node is equal to the sum of currents out of the node.
+    
+    sum(into) == sum(out)
+
+    """
+
+    assert into or out, "At least one current must be specified"
+
+    return sum(into) == sum(out) # type: ignore - assert should prevent both being 0 length lists

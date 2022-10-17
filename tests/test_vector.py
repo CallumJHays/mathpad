@@ -1,18 +1,18 @@
 from mathpad import *
 
-from _test_utils import _expect_assertion_error
+from _test_utils import expect_err
 
 def test_R3_disp():
     O = R3("O")
     vec = O[1, 2, 3]
 
-    assert str(vec) == "O[1, 2, 3]"
+    assert str(vec) == "[1, 2, 3] wrt. O"
 
 def test_R3_disp_sym():
     O = R3("O")
-    vec = O.sym("vec")
+    vec = "vec" * O
 
-    assert str(vec) == 'O["vec"]'
+    assert str(vec) == '\\vec{vec} wrt. O'
 
 def test_R3_add_R3():
     O = R3("O")
@@ -26,12 +26,10 @@ def test_R3_add_R2_fails():
     vec = R3("O3")[1, 2, 3]
     vec2 = R2("O2")[4, 5]
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec + vec2 # type: ignore
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec2 + vec # type: ignore
 
 def test_R3_add_Val_fails():
@@ -39,12 +37,10 @@ def test_R3_add_Val_fails():
     vec = O[1, 2, 3]
     val = 1 * meter
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec + val # type: ignore
         
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         val + vec # type: ignore
 
 
@@ -60,12 +56,10 @@ def test_R3_sub_R2_fails():
     vec = R3("O3")[1, 2, 3]
     vec2 = R2("O2")[4, 5]
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec - vec2 # type: ignore
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec2 - vec # type: ignore
 
 def test_R3_mul_Val():
@@ -88,12 +82,10 @@ def test_Val_div_R3_fails():
     O = R3("O")
     vec = O[1, 2, 3]
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         2 * meter / vec # type: ignore
         
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         2 / vec # type: ignore
 
 def test_R3_cross():
@@ -110,8 +102,7 @@ def test_R2_cross_fails():
     vec = O[1, 2]
     vec2 = O[3, 4]
 
-    @_expect_assertion_error
-    def _():
+    with expect_err(AssertionError):
         vec.cross(vec2)
 
 def test_R3_dot():
@@ -124,7 +115,7 @@ def test_R3_dot():
 
 def test_R3_sym_dot():
     O = R3("O")
-    vec = O.sym("vec")
+    vec = "vec" * O
     vec2 = O[1, 2, 3]
     
     x1, y1, z1 = vec
@@ -135,7 +126,7 @@ def test_R3_sym_dot():
 
 def test_R3_sym_add():
     O = R3("O")
-    vec = O.sym("vec")
+    vec = "vec" * O
     vec2 = O[1, 2, 3]
 
     # TODO: get matrix expressions printing better as str()
@@ -150,7 +141,7 @@ def test_R3_sym_add():
 
 def test_R3_sym_cross():
     O = R3("O")
-    vec = O.sym("vec")
+    vec = "vec" * O
     vec2 = O[1, 2, 3]
 
     eqn = vec.cross(vec2) == O[
@@ -209,3 +200,7 @@ def test_R3_integral_syms():
         integral(z)
     ]
     assert eqn.eval()
+
+def test_R3_sym_func():
+    O = R3("O")
+    vec = "vec(t)" * O

@@ -1,8 +1,7 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, overload
 from sympy import Piecewise
 
-from mathpad.val import Val, ValT, Q
-from mathpad._quality_of_life import frac
+from mathpad.val import Dimensionless, Num, Val, ValT, Q
 
 # TODO: improve API once ">", "<", ">=" etc operators are implemented for Val
 def piecewise(x: Val, region_vals: List[Tuple[float, Q[ValT]]]) -> ValT:
@@ -23,6 +22,14 @@ def piecewise(x: Val, region_vals: List[Tuple[float, Q[ValT]]]) -> ValT:
         Piecewise(*inp)
     )
 
+@overload
+def sqrt(x: Num) -> Num:
+    ...
 
-def sqrt(x: Q[Val]):
-    return x ** frac(1, 2)
+@overload
+def sqrt(x: Val) -> Val:
+    ...
+
+def sqrt(x: Q[Val]) -> Q[Val]:
+    from sympy import sqrt as _sqrt
+    return Val(x.units**0.5, _sqrt(x.expr))

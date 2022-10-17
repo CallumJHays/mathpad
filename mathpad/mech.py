@@ -1,58 +1,48 @@
+from typing import Type, cast
 from mathpad import *
+        
 
-
-def kinetic_energy(m: Q[Mass], v: Q[Velocity]) -> Energy:
+@mathpad_constructor
+def kinetic_energy(*, m: X[Mass], v: X[Velocity]) -> Energy:
     "Energy of a moving object"
-    return frac(1, 2) * m * v ** 2  # type: ignore
+    return m * v ** 2 / 2  # type: ignore
 
 
-def elastic_energy(k: Q[Elasticity], dx: Q[Length]) -> Energy:
-    return frac(1, 2) * k * dx ** 2  # type: ignore
+@mathpad_constructor
+def elastic_energy(*, k: X[Elasticity], dx: X[Length]) -> Energy:
+    return k * dx ** 2 / 2  # type: ignore
 
 
-def gravitational_energy(m: Q[Mass], h: Q[Length], g: Q[Acceleration] = g) -> Energy:
+@mathpad_constructor
+def gravitational_energy(*, m: X[Mass], h: X[Length], g: X[Acceleration]) -> Energy:
     return m * g * h  # type: ignore
 
 
+@mathpad_constructor
 def euler_lagrange(
-    sum_kinetic_energy: Q[Energy],
-    sum_potential_energy: Q[Energy],
-    sum_non_conservative_forces: Q[Force],
+    *,
+    sum_kinetic_energy: X[Energy],
+    sum_potential_energy: X[Energy],
+    sum_non_conservative_forces: X[Force],
     state: Val,
 ) -> Equation:
+    """
+    Euler-Lagrange equation for a system of particles.
+
+    
+    """
     L = sum_kinetic_energy - sum_potential_energy
-    ds = diff(state)
-    return diff(diff(L, wrt=ds), wrt=t) - diff(L, wrt=state) == sum_non_conservative_forces # type: ignore
+    return diff(diff(L, wrt=diff(state)), wrt=t) - diff(L, wrt=state) == sum_non_conservative_forces # type: ignore
 
 
+@mathpad_constructor
 def impulse_momentum(
-    m: Q[Mass],  # mass
-    v1: Q[Velocity],  # initial velocity
-    F: Q[Force],  # impulse force required
-    t: Q[Time],  # impulse duration in seconds
-    v2: Q[Velocity],  # final velocity
+    *,
+    m: X[Mass],  # mass
+    v1: X[Velocity],  # initial velocity
+    F: X[Force],  # impulse force required
+    t: X[Time],  # impulse duration in seconds
+    v2: X[Velocity],  # final velocity
 ) -> Equation:
-    "The force required in an instant to change an object's velocity"
-    return m * v1 + integral(F, t) == m * v2
-
-
-def velocity_acceleration(
-    v: Q[Velocity], t: Q[Time]  # symbol for time
-) -> Acceleration:
-    return integral(v, t)
-
-
-def force_momentum(
-    m: Q[Mass],  # mass of object
-    v: Q[Velocity],
-    t: Q[Time] = t,
-) -> Force:
-    return diff(m * v, t)
-
-
-def angular_momentum(
-    r_p_o: Q[Length],  # unit vector of rotation axis (anti-clockwise)
-    m: Q[Mass],  # mass of point object
-    v: Q[Velocity],  # velocity of point object
-) -> AngularMomentum:
-    return r_p_o.cross(m * v)
+    "The force required during an instant to change an object's velocity"
+    return m * v1 + integral(F, wrt=t) == m * v2

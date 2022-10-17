@@ -17,18 +17,25 @@ def test_var_vel_rads():
 def test_solve1_meters_eq_float():
     float_val = 1.2345
     a = "a" * meters
-    res = solve(a == float_val, a)
+    slns = solve([a == float_val], [a])
 
-    assert isinstance(res, Solution)
-    assert res[a].expr == float_val
-    assert res[a].units == a.units
+    assert len(slns) == 1
+    sln = slns[0]
+
+    assert isinstance(sln, Solution)
+    assert sln[a].expr == float_val
+    assert sln[a].units == a.units
 
 
 def test_solve1_meters_eq_meters_plus_kilometers():
     a = 10 * meters
     b = 2 * kilometers
     c = "c" * meters
-    res = solve(c == a + b, c)
+    slns = solve([c == a + b], [c])
 
-    assert isinstance(res, Solution)
-    assert str(res[c]) == "2010 meters"
+    assert len(slns) == 1
+    sln = slns[0]
+
+    assert isinstance(sln, Solution)
+    assert sln[c].expr == 2010
+    assert sln[c].units == c.units

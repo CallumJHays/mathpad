@@ -2,7 +2,7 @@ from typing import ItemsView, KeysView, Protocol, TypeVar, Union, ValuesView, ov
 import sympy
 
 from mathpad.val import Q, ValT, Val
-from mathpad.vector import Vec, VecT
+from mathpad.vector import Vector, VecT
 from mathpad.equation import Equation
 
 
@@ -27,7 +27,7 @@ def simplify(obj: Union[ValT, Equation, VecT]) -> Union[ValT, Equation, VecT]:
             simplify(obj.rhs)
         )
     
-    elif isinstance(obj, Vec):
+    elif isinstance(obj, Vector):
         return obj.__class__(
             obj.space,
             sympy.simplify(obj.expr) # type: ignore
@@ -65,7 +65,7 @@ def factor(
             factor(obj.rhs)
         )
     
-    elif isinstance(obj, Vec):
+    elif isinstance(obj, Vector):
             
         return obj.__class__(
             obj.space,
@@ -101,7 +101,7 @@ def expand(
         # TODO: simplification that actually makes use of equality
         return Equation(expand(obj.lhs), expand(obj.rhs))
 
-    elif isinstance(obj, Vec):
+    elif isinstance(obj, Vector):
         return obj.__class__(
             obj.space,
             sympy.expand(obj.expr)
@@ -117,8 +117,8 @@ def expand(
 # Until a contravariant Map type is added to typing, we have to use this
 # https://github.com/python/typing_extensions/issues/5#issue-1241825018
 
-VecOrVal = TypeVar("VecOrVal", bound=Union[Val, Vec], covariant=True)
-VecOrValQ = TypeVar("VecOrValQ", bound=Union[Q[Val], Vec], covariant=True)
+VecOrVal = TypeVar("VecOrVal", bound=Union[Val, Vector], covariant=True)
+VecOrValQ = TypeVar("VecOrValQ", bound=Union[Q[Val], Vector], covariant=True)
 
 class SubstitutionMap(Protocol[VecOrVal, VecOrValQ]):
     def keys(self) -> KeysView[VecOrVal]: ...
@@ -153,7 +153,7 @@ def subs(
         sympy_subsmap = {}
 
         for from_, to in substitutions.items():
-            if not isinstance(to, (Val, Vec)):
+            if not isinstance(to, (Val, Vector)):
                 to = from_.__class__(from_.units, to)
 
             sympy_subsmap[from_.expr] = to.in_units(from_ if isinstance(from_, Val) else from_.space).expr

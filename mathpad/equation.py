@@ -32,7 +32,7 @@ class Equation:
         lhs: Union["Q[ValT]", "VecT"],
         rhs: Union["Q[ValT]", "VecT"]
     ):
-        from mathpad import Val, Vec
+        from mathpad import Val, Vector
         
         lhs_is_val = isinstance(lhs, Val)
         rhs_is_val = isinstance(rhs, Val)
@@ -55,7 +55,7 @@ class Equation:
 
         else:
             # both are Vector. handle unit conversion and rescaling if necessary.
-            assert isinstance(lhs, Vec) and isinstance(rhs, Vec)
+            assert isinstance(lhs, Vector) and isinstance(rhs, Vector)
             
             # convert rhs into units of lhs, scaling rhs' val if necessary
             self.units = lhs.space
@@ -90,8 +90,8 @@ class Equation:
         lhs_ltx = (vlatex(self.lhs.expr)).replace("- 1.0 ", "-")
         rhs_ltx = (vlatex(self.rhs.expr)).replace("- 1.0 ", "-")
 
-        units_ltx = "dimensionless" if self.units == 1 \
-            else self.units._repr_latex_(wrapped=False) if isinstance(self.units, VectorSpace) \
+        units_ltx = self.units._repr_latex_(wrapped=False) if isinstance(self.units, VectorSpace) \
+            else "dimensionless" if self.units == 1 \
             else vlatex(self.units)
 
         spacer_ltx = "\\hspace{1.25em}"
@@ -110,4 +110,6 @@ class Equation:
         rhs = self.rhs.expr.as_explicit() if isinstance(self.rhs.expr, (MatrixSymbol, MatrixExpr)) else self.rhs.expr
     
         # TODO: check if this will affect solve() in any way
-        return lhs == rhs
+        # TODO: what happens if the equation cannot be evaluated?
+        res = lhs.doit() == rhs.doit()
+        return res

@@ -2,22 +2,26 @@ from abc import ABC
 from typing import (
     TYPE_CHECKING,
     Callable,
+    Optional,
     Union,
     Tuple,
     Generic,
     TypeVar,
+    overload,
 )
+import inspect
 from typing_extensions import Self, TypeVarTuple, Unpack
 
-from sympy import Matrix
+import sympy
+from sympy import MatrixExpr
 from sympy.physics.vector import vlatex
 
 from mathpad.dimensions import Angle, Length
-from mathpad.val import Val, Q
+from mathpad.val import Val, Q, _sym_func
 from mathpad.units import meter
 
 if TYPE_CHECKING:
-    from mathpad.vector import Vec
+    from mathpad.vector import Vector
 
 BaseUnits = TypeVarTuple('BaseUnits')
 
@@ -34,7 +38,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
     base_units: Tuple[Unpack[BaseUnits]] # must be a tuple of Val
     base_names: Tuple[str, ...]
     
-    def __init__(self, name: str):
+    def __init__(self, name: Optional[str] = None):
         self.name = name
         # TODO: valid latex name check
         assert self.__class__ is not VectorSpace, \
@@ -88,29 +92,31 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             Tuple[Unpack[BaseUnits]], # for when the baseunits are known
             Tuple[Q[Val], ...] # otherwise
         ]
-    ) -> 'Vec[Self]':
+    ) -> 'Vector[Self]':
         """
         Construct a vector of this space from a sequence of values.
         """
-        from mathpad.vector import Vec
-        return Vec(self, vals) # type: ignore
+        from mathpad.vector import Vector
+        return Vector(self, vals) # type: ignore
         
     def __repr__(self) -> str:
         # wrap units in a matrix so it prints nicely
-        return repr(Matrix([
+        return repr(sympy.Matrix([
             unit.units # type: ignore
             for unit in self.base_units
         ]))
     
+    def __eq__(self, other: 'VectorSpace') -> bool:
+        return self.name == other.name \
+            and self.base_units == other.base_units \
+            and self.base_names == other.base_names
+    
     def __str__(self) -> str:
-        return f"<{self.name}: {self.__class__.__name__}>"
+        name_bit = f' name="{self.name}"' if self.name else ''
+        return f"<{self.__class__.__name__}{name_bit}>"
     
     def __len__(self):
         return len(self.base_names)
-    
-    def sym(self, name: str):
-        from mathpad.vector import Vec
-        return Vec(self, name)
     
     def _repr_latex_(self, wrapped: bool = True):
         
@@ -122,9 +128,11 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
                 f'\cdot {vlatex(base_unit.units).replace("- 1.0 ", "-")}' # type: ignore
                 for base_name, base_unit in zip(self.base_names, self.base_units)
             )
-            + " \\end{matrix}"
+            + " \\end{matrix}\\normalsize"
         )
-        full_ltx = "%s \\hspace{0.7em} \\text{wrt. %s}" % (units_ltx, self.name)
+
+        wrt_ltx = "\\small\\text{wrt. %s}\\normalsize" % self.name if self.name else ""        
+        full_ltx = "%s \\hspace{0.7em} %s" % (units_ltx, wrt_ltx)
 
         return f"$$ {full_ltx} $$" if wrapped else full_ltx
 
@@ -135,7 +143,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
         space_a: Union['VectorSpace', Val],
         space_b: Union['VectorSpace', Val],
         op: Callable[[Val, Val], Val],
-        name: str
+        name: Optional[str]
     ) -> 'VectorSpace':
 
         assert isinstance(space_a, VectorSpace) or isinstance(space_b, VectorSpace)
@@ -155,9 +163,9 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
 
         return OutputSpace(name)
 
-    def zeros(self) -> 'Vec[Self]':
-        from mathpad.vector import Vec
-        return Vec(self, [0] * len(self))
+    def zeros(self) -> 'Vector[Self]':
+        from mathpad.vector import Vector
+        return Vector(self, [0] * len(self))
     
     def __truediv__(self, other: Val) -> 'VectorSpace':
         return VectorSpace._get_output_space(
@@ -182,14 +190,42 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             lambda a, b: a * b,
             self.name
         )
-    
+
+    @overload
     def __rmul__(self, other: Val) -> 'VectorSpace':
-        return VectorSpace._get_output_space(
-            other,
-            self,
-            lambda a, b: a * b,
-            self.name
-        )
+        ...
+    
+    @overload
+    def __rmul__(self, other: 'str') -> 'Vector[Self]':
+        ...
+    
+    def __rmul__(self, other: Union[Val, str]) -> Union['VectorSpace', 'Vector[Self]']:
+        from mathpad.vector import Vector
+
+        if isinstance(other, str):
+
+            if "(" in other:
+                # This must be a symbolic function definition
+                caller_frame = inspect.currentframe().f_back # type: ignore
+                assert caller_frame
+
+                name, rest = other.split("(")
+                sym = "\\vec{" + name + "}(" + rest
+
+                # construct a symbolic vector as a function of specified dependencies
+                expr: MatrixExpr = _sym_func(sym, caller_frame) # type: ignore
+                return Vector(self, expr)
+            
+            else:
+                return Vector(self, other)
+
+        else:
+            return VectorSpace._get_output_space(
+                other,
+                self,
+                lambda a, b: a * b,
+                self.name
+            )
 
 VectorSpaceT = TypeVar("VectorSpaceT", bound=VectorSpace)
 
@@ -206,7 +242,7 @@ class R2(VectorSpace[Length, Length]):
     base_units = meter, meter
     base_names = "i", "j"
 
-    def from_polar(self, r: Q[Length], theta: Q[Angle]) -> 'Vec[Self]':
+    def from_polar(self, r: Q[Length], theta: Q[Angle]) -> 'Vector[Self]':
         """
         Construct a vector from polar coordinates.
         theta is measured anticlockwise from the +x axis, so you must be careful which value you use.
@@ -215,7 +251,19 @@ class R2(VectorSpace[Length, Length]):
         etc
         """
         from mathpad import sin, cos
+
+        r_ = r if isinstance(r, Val) else Val(meter.units, r) # type: ignore
+
         return self[
-            r * cos(theta),
-            r * sin(theta)
+            r_ * cos(theta),
+            r_ * sin(theta)
         ]
+
+    def from_complex(self, z: Q[Length]) -> 'Vector[Self]':
+        """
+        Construct a vector from a possibly number or Length
+        """
+        real, imag = z.expr.as_real_imag() if isinstance(z, Val) \
+            else (z.real, z.imag) if isinstance(z, complex) \
+            else (z, 0) # type: ignore
+        return self[real, imag] # type: ignore

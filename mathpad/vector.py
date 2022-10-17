@@ -3,15 +3,15 @@ from typing import Generic, Sequence, Union, Any, TypeVar
 from typing_extensions import Self
 
 from sympy.physics.vector import vlatex
-from sympy import MatrixSymbol, Matrix, MatrixExpr
+from sympy.vector import Dot, Vector
+from sympy import MatrixSymbol, Matrix, MatrixExpr, Expr, Derivative, Function
 
 from mathpad.val import DimensionError, SumDimensionsMismatch, Val, Q
 from mathpad.vector_space import VectorSpaceT
 from mathpad.equation import Equation
-from mathpad._quality_of_life import t
 
 
-class Vec(Generic[VectorSpaceT]):
+class Vector(Generic[VectorSpaceT]):
     """
     A Vector is an instance of a VectorSpace
     """
@@ -19,7 +19,7 @@ class Vec(Generic[VectorSpaceT]):
     def __init__(
         self,
         vector_space: VectorSpaceT,
-        vals: Union[
+        expr: Union[
             str,
             Sequence[Q[Val]],
             MatrixExpr
@@ -27,28 +27,33 @@ class Vec(Generic[VectorSpaceT]):
     ):
         self.space = vector_space
 
-        if isinstance(vals, MatrixExpr):
-            # vals is the result of a matrix operation. It should be good to use as-is
-            self.expr = vals # type: ignore
+        if isinstance(expr, Expr):
+            # expr is the result of a matrix operation. It should be good to use as-is
+            self.expr = expr # type: ignore
         
-        elif isinstance(vals, str):
+        elif isinstance(expr, str):
             # construct a symbolic vector
-            self.expr: MatrixSymbol = MatrixSymbol(vals, len(vector_space.base_units), 1) # type: ignore
+
+            sym = "\\vec{" + expr + "}"
+
+            self.expr: MatrixSymbol = MatrixSymbol(sym, len(vector_space.base_units), 1) # type: ignore
+            print()
         
-        else:
+        else: # must be a sequence of Q[Val]
+
             # TODO: make this error message more obviously related to the vector-spaces
-            for val, unit in zip(vals, vector_space.base_units):
+            for val, unit in zip(expr, vector_space.base_units):
                 if isinstance(val, Val):
                     DimensionError.check(val, unit) # type: ignore
 
-            self.expr: Matrix = Matrix([val.expr if isinstance(val, Val) else val for val in vals]) # type: ignore
+            self.expr: Matrix = Matrix([val.expr if isinstance(val, Val) else val for val in expr]) # type: ignore
     
-    def in_units(self, space: VectorSpaceT) -> 'Vec':
+    def in_units(self, space: VectorSpaceT) -> 'Vector[VectorSpaceT]':
         """
         Convert the units of this vector to a different VectorSpace while retaining its true physical value
         """
 
-        return Vec(space, [
+        return Vector(space, [
             Val(base_units.units, expr).in_units(new_units)
             for expr, base_units, new_units in zip(
                 self.expr, # type: ignore
@@ -57,7 +62,10 @@ class Vec(Generic[VectorSpaceT]):
             )
         ])
     
-    def __eq__(self, other: 'Vec') -> "Equation":
+    def re(self, space: VectorSpaceT) -> 'Vector[VectorSpaceT]':
+        return self.in_units(space)
+    
+    def __eq__(self, other: 'Vector') -> "Equation":
         
         for a, b in zip(self.space.base_units, other.space.base_units):
             SumDimensionsMismatch.check(a, "==", b) # type: ignore
@@ -70,7 +78,7 @@ class Vec(Generic[VectorSpaceT]):
     def __add__(self, other: Self) -> Self:
         "self + other"
 
-        assert isinstance(other, Vec), \
+        assert isinstance(other, Vector), \
             f"Cannot add {type(other)} to {type(self)}"
 
         for a, b in zip(self.space.base_units, other.space.base_units):
@@ -101,9 +109,17 @@ class Vec(Generic[VectorSpaceT]):
     def _repr_latex_(self, wrapped: bool = True):
 
         # TODO: get vlatex() to display the MatrixSymbol as a \vec{} always
-        # vlatex(self.expr) if isinstance(self.expr, MatrixSymbol) else 
+        # vlatex(self.expr) if isinstance(self.expr, MatrixSymbol) else
+        
+        if isinstance(self.expr, Derivative):
+            # workaround for vlatex() crashing on vector derivatives.
+            orig_expr_variables = self.expr.__class__.variables
+            self.expr.__class__.variables = self.expr._wrt_variables # type: ignore
+        else:
+            orig_expr_variables = None
+
         expr_ltx = (
-            "\\begin{bmatrix} "
+            "\\begin{bmatrix}"
             + " \\\\ ".join(
                 # use vlatex because it applies dot notation where possible
                 f'{vlatex(el.expr).replace("- 1.0 ", "-")}'
@@ -111,8 +127,12 @@ class Vec(Generic[VectorSpaceT]):
                 for el in self
             )
             + " \\end{bmatrix}"
-        )
-        
+        ) if isinstance(self.expr, Matrix) else vlatex(self.expr)
+    
+        if orig_expr_variables:
+            # undo temp monkeypatch
+            self.expr.__class__.variables = orig_expr_variables # type: ignore
+
         vectorspace_ltx = self.space._repr_latex_(wrapped=False)
         
         spacer_ltx = "\\hspace{1.25em}"
@@ -134,13 +154,13 @@ class Vec(Generic[VectorSpaceT]):
     def __getitem__(self, index: int) -> Val:
         return Val(
             self.space.base_units[index].units,
-            self.expr[index]
+            self.expr[index] # type: ignore
         )
     
     def __neg__(self) -> Self:
         return self.__class__(self.space, -self.expr) # type: ignore
         
-    def __abs__(self):
+    def norm(self):
         """
         Returns the norm / magnitude of this vector
 
@@ -157,7 +177,7 @@ class Vec(Generic[VectorSpaceT]):
         return sqrt(norm_squared)
     
     def __mul__(self, other: Q[Val]):
-        return Vec(
+        return Vector(
             (self.space * other) if isinstance(other, Val) else self.space,
             self.expr * (
                 other.expr if isinstance(other, Val) else other # type: ignore
@@ -168,7 +188,7 @@ class Vec(Generic[VectorSpaceT]):
         return self * other
     
     def __truediv__(self, other: Q[Val]):
-        return Vec(
+        return Vector(
             (self.space / other) if isinstance(other, Val) else self.space,
             self.expr / (other.expr if isinstance(other, Val) else other)
         )
@@ -177,10 +197,11 @@ class Vec(Generic[VectorSpaceT]):
         # TODO: make this output more readable for MatrixExpr's
         nl = "\n"
         nltab = "\n\t"
-        val_str = f'["{str(self.expr).replace(nl, nltab)}"]' \
-            if isinstance(self.expr, (MatrixSymbol, MatrixExpr)) \
+        val_str = f'{str(self.expr).replace(nl, nltab)}' \
+            if isinstance(self.expr, Expr) \
             else str([val for val in self.expr])
-        return f"{self.space.name}{val_str}"
+
+        return f"{val_str} wrt. {self.space.name}" if self.space.name else val_str
     
     def _repr(self, _with_units: bool) -> str:
         return repr(self)
@@ -188,10 +209,14 @@ class Vec(Generic[VectorSpaceT]):
     def __repr__(self) -> str:
         return str(self)
     
+    def eval(self, precision: int = 6):
+        "Return a new Vec with consts evaluated to their floating point equivalent with given precision"
+        return self.__class__(self.space, self.expr.evalf(precision))
+    
     # TODO: extend this to higher dimensions and other bases somehow
     # PS: technically cross product is only defined for 3D and 7D, but the concept of orthogonal basis vectors is more general
     # TODO: should this only be defined for R3?
-    def cross(self, other: Self) -> 'Vec':
+    def cross(self, other: Self) -> 'Vector':
         """
         Cross product of two vectors.
 
@@ -213,12 +238,12 @@ class Vec(Generic[VectorSpaceT]):
         # MatrixSymbol doesn't have the .cross() method - convert to explicit (MatrixExpr) first
         self_val = self.expr.as_explicit() if isinstance(self.expr, MatrixSymbol) else self.expr
 
-        return Vec(
+        return Vector(
             out_space,
-            self_val.cross(other.expr) # type: ignore
+            self.Cross(self_val, other.expr) # type: ignore
         )
     
-    def dot(self, other: 'Vec[Any]') -> Val:
+    def dot(self, other: 'Vector[Any]') -> Val:
         "dot product"
 
         out_units = (
@@ -230,23 +255,7 @@ class Vec(Generic[VectorSpaceT]):
 
         return Val(
             out_units,
-            self_val_matrix.dot(other_val_matrix) # type: ignore
-        )
-
-    def diff(self, n: int = 1, wrt: Val = t):
-        "differentiation"
-        
-        return Vec(
-            self.space / wrt,
-            self.expr.diff((wrt.expr, n)) # type: ignore
-        )
-    
-    def integrate(self, wrt: Val = t):
-        "integration"
-
-        return Vec(
-            self.space * wrt,
-            self.expr.integrate(wrt.expr)
+            self.Dot(self_val_matrix, other_val_matrix)
         )
     
     def __getattr__(self, name: str) -> Val:
@@ -268,9 +277,21 @@ class Vec(Generic[VectorSpaceT]):
 
         if name in self.space.base_names:
             idx = self.space.base_names.index(name)
+
+            if isinstance(self.expr, Function):
+                raise
+
+            assert not isinstance(self.expr, Function), \
+                "Cannot yet access components of a symbolic function vector.\n" \
+                "For a temporary workaround, construct the vector explicitly with a list of symbolic values.\n" \
+                "For example:\n" \
+                ">>> v = R3('O')['v_i' * m, 'v_j' * m, 'v_k' * m]\n" \
+                ">>> v.i # this should then work"
+
+
             return Val(
                 self.space.base_units[idx].units,
-                self.expr[idx]
+                self.expr[idx] # type: ignore
             )
             
         else:
@@ -278,12 +299,36 @@ class Vec(Generic[VectorSpaceT]):
                 f"{self.__class__.__name__} has no attribute {name}. "
                 f" (base names are {self.space.base_names})"
             )
+        
+    class Cross(Vector):
+        """
+        A custom Cross product class that works with matrices instead of vectors.
+        Also gets rid of some weird negation behaviour (see sympy.vector.vector.Cross's __new__ method)
+        """
+            
+        def __new__(cls, expr1, expr2):
+            obj = Expr.__new__(cls, expr1, expr2)
+            obj._expr1 = expr1 # type: ignore - these are referenced in printing
+            obj._expr2 = expr2 # type: ignore
+            return obj
+
+        def doit(self, **hints):
+            a, b = self.args # type: ignore
+            return a.cross(b, **hints) # type: ignore
+
+    class Dot(Dot):
+        """
+        A custom Dot product class that works with matrices instead of vectors
+        """
+
+        def doit(self, **hints):
+            return self._expr1.dot(self._expr2, **hints) # type: ignore
 
 
-VecT = TypeVar('VecT', bound=Vec)
+VecT = TypeVar('VecT', bound=Vector, contravariant=True)
 
-def _broken_rtruediv(self: Vec, other: Q[Val]):
+def _broken_rtruediv(_self: Vector, other: Q[Val]):
     "Make it obvious that this is impossible, but don't let the type checker know this method is implemented"
-    assert isinstance(other, Vec), "Can only divide vectors by vectors. Got {other} / {self}"
+    assert isinstance(other, Vector), "Can only divide vectors by vectors. Got {other} / {self}"
 
-setattr(Vec, '__rtruediv__', _broken_rtruediv)
+setattr(Vector, '__rtruediv__', _broken_rtruediv)

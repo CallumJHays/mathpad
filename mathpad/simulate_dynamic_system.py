@@ -27,7 +27,7 @@ def simulate_dynamic_system(
     x_final: float,
     initial_conditions: SubstitutionMap,
     record: List[Val],
-    max_step: Optional[float],
+    max_step: float,
     substitute: SubstitutionMap = {},
     x_axis: Val = t,
     all_solutions: bool = False,
@@ -55,10 +55,6 @@ def simulate_dynamic_system(
 
     # TODO: support plotting on separate axes, and subplots
     # TODO: ensure we aren't subbing out something that is required for a 'record' output
-
-    # TODO: support integrals
-    if max_step is None:
-        max_step = float("inf")
 
     if display_explanation:
         print("Using Input Equations:")
@@ -195,7 +191,7 @@ def simulate_dynamic_system(
 
         # outputs are highest of input derviatives plus recorded data
         # ie [dddx, record[0], record[1]]
-        lambdified = lambdify([x_axis.expr, inputs], solution_vec)
+        lambdified = lambdify([x_axis.expr, inputs], solution_vec, 'numpy')
 
         data = []
 

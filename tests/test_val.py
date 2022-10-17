@@ -213,11 +213,63 @@ def test_pow_squared():
     assert str(res) == "a**2 meters**2"
 
 
+def test_pow_half():
+    a = "a" * meters**2
+    res = a ** 0.5
+
+    assert str(res) == "a**0.5 meters"
+
+
+def test_pow_neg_zero():
+    a = "a" * meters
+    res = a ** -0
+
+    assert str(res) == "1"
+
+
+def test_pow_neg_half():
+    a = "a" * meters**2
+    res = a ** -0.5
+
+    assert str(res) == "a**(-0.5) meters**(-1.0)"
+
+
+def test_rpow_100():
+    a = "a" * dimensionless
+    res = 100 ** a
+
+    assert str(res) == "100**a"
+
+
 def test_pow_100():
     a = "a" * meters
     res = a ** 100
 
     assert str(res) == "a**100 meters**100"
+
+
+def test_pow_sym():
+    a = "a" * meters
+    b = "b" * dimensionless
+    res = a ** b
+
+    assert str(res) == "a**b meters**b"
+
+
+def test_pow_neg_sym():
+    a = "a" * meters
+    b = "b" * dimensionless
+    res = a ** -b
+
+    assert str(res) == "a**(-b) meters**(-b)"
+
+
+def test_pow_sym_cancels():
+    a = "a" * meters
+    b = "b" * dimensionless
+    res = (a ** b ) * (a ** -b)
+
+    assert str(res) == "1"
 
 
 def test_pow_neg_100():

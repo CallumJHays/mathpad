@@ -4,10 +4,10 @@ import sympy
 
 from mathpad.val import Val, Q
 from mathpad import t
-from mathpad.global_options import _global_options
+# from mathpad.global_options import _global_options
 from mathpad.algebra import simplify
 from mathpad.vector_space import VectorSpace
-from mathpad.vector import Vec
+from mathpad.vector import Vector
 
 
 
@@ -17,16 +17,18 @@ from mathpad.vector import Vec
 def diff(val: Q[Val], order: int = 1, *, wrt: Val = t) -> Val: ...
 
 @overload
-def diff(val: Vec, order: int = 1, *, wrt: Val = t) -> Vec: ...
+def diff(val: Vector, order: int = 1, *, wrt: Val = t) -> Vector: ...
 
 def diff(
-    val: Union[Q[Val], Vec], order: int = 1, *, wrt: Val = t
-) -> Union[Val, Vec]:
+    val: Union[Q[Val], Vector], order: int = 1, *, wrt: Val = t
+) -> Union[Val, Vector]:
     # TODO: support partial derivatives by passing in a Vec for wrt
 
-    if isinstance(val, Vec):
-        out_space = val.space / wrt
-        return Vec(out_space, [diff(v, order, wrt=wrt) for v in val])
+    if isinstance(val, Vector):
+        return Vector(
+            val.space / wrt,
+            val.expr.diff((wrt.expr, order)) # type: ignore
+        )
 
     val_units = val.units if isinstance(val, Val) else val
     val_val = val.expr if isinstance(val, Val) else sympy.sympify(val)
@@ -40,9 +42,6 @@ def diff(
         val_val.diff((wrt.expr, order))  # type: ignore
     )
 
-    if _global_options.auto_simplify:
-        res = simplify(res)
-
     return res
 
 @overload
@@ -55,18 +54,18 @@ def integral(
 
 @overload
 def integral(
-    val: Vec,
+    val: Vector,
     *,
     wrt: Val = t,
     between: Optional[Tuple[Q[Val], Q[Val]]] = None
-) -> Vec: ...
+) -> Vector: ...
 
 def integral(
-    val: Union[Q[Val], Vec],
+    val: Union[Q[Val], Vector],
     *,
     wrt: Val = t,
     between: Optional[Tuple[Q[Val], Q[Val]]] = None
-) -> Union[Q[Val], Vec]:
+) -> Union[Q[Val], Vector]:
     """
     Integrate a value with respect to a symbolic Val.
 
@@ -104,23 +103,20 @@ def integral(
     
     """
 
-    if isinstance(val, Vec):
-        return Vec(
+    integrand = (wrt.expr, *between) if between else wrt.expr 
+
+    if isinstance(val, Vector):
+        return Vector(
             val.space * wrt,
-            [integral(v, wrt=wrt, between=between) for v in val]
+            sympy.integrate(val.expr, integrand) # type: ignore
         )
 
     val_units = val.units if isinstance(val, Val) else val
-    val_val = val.expr if isinstance(val, Val) else Val
-
-    integrand = (wrt.expr, *between) if between else wrt.expr 
+    val_expr = val.expr if isinstance(val, Val) else Val
 
     res = Val(
         val_units * wrt.units, # type: ignore
-        sympy.integrate(val_val, integrand)  # type: ignore
+        sympy.integrate(val_expr, integrand)  # type: ignore
     )
-
-    if _global_options.auto_simplify:
-        res = simplify(res)
 
     return res

@@ -1,14 +1,15 @@
-from typing import TYPE_CHECKING, Any, Tuple, Union, TypeVar, overload, Callable
+from types import FrameType
+from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, TypeVar, overload, Callable
 import re
 from abc import ABC
 from typing_extensions import Self, Literal
+import inspect
 
 import sympy
 import sympy.physics.units as su
 from sympy.physics.units.dimensions import Dimension
 from sympy.physics.units.systems.si import dimsys_SI
 from sympy.physics.units.unitsystem import UnitSystem
-from sympy.physics.vector import dynamicsymbols
 from sympy.physics.vector.printing import vlatex
 from sympy.physics.units.util import (
     quantity_simplify,
@@ -16,10 +17,6 @@ from sympy.physics.units.util import (
 )
 
 from mathpad.equation import Equation
-from mathpad.global_options import _global_options
-
-if TYPE_CHECKING:
-    from mathpad.vector import Vec
 
 # TODO: support numpy arrays
 Num = Union[int, float, complex]
@@ -28,7 +25,7 @@ Num = Union[int, float, complex]
 _units2dimensional_expr = UnitSystem.get_default_unit_system().get_dimensional_expr
 
 
-class Val(ABC):
+class Val:
     "An value with a set of units. For example 10 ohms or 20 meters / second**2"
 
 
@@ -37,6 +34,10 @@ class Val(ABC):
         units: Union[su.Quantity, sympy.Expr],  # may also be a sympy expression of su.Quantities, ie su.meter**2
         val: Union[sympy.Expr, Num] = 1,
     ):
+    
+        # clean up the case where you get units**1.0
+        if isinstance(units, sympy.Pow) and units.exp == 1:
+            units = units.base
 
         self.expr: sympy.Expr = sympy.sympify(val)
         self.units: su.Quantity = quantity_simplify(sympy.sympify(units))
@@ -85,6 +86,7 @@ class Val(ABC):
     def _repr_latex_(self, wrapped: bool = True):
         # use vlatex because it applies dot notation where possible
 
+
         expr_str = str(self.expr.evalf())
 
         # if this has an exponent
@@ -99,10 +101,12 @@ class Val(ABC):
             if "." in expr_str:
                 # remove trailing zeros for whole numbers
                 whole, decimals = expr_str.split(".")
-                if all(d == '0' for d in decimals):
+                decimals = decimals.rstrip('0')
+                if not any(decimals):
                     expr_ltx = whole
                 else:
-                    expr_ltx = expr_str[:8] + ".."
+                    # TODO: global / context managed sigfig settings
+                    expr_ltx = f"{whole}.{decimals[:4]}{'..' if len(decimals) > 4 else ''}"
             else:
                 expr_ltx = expr_str
         else:
@@ -123,7 +127,7 @@ class Val(ABC):
         res = re.sub(
             r"(\d+\.\d*[^0])0+",
             r"\1",
-            str(self.expr if _is_primitive_num(self.expr) else self.expr.evalf(6)),  # type: ignore
+            str(self.expr.evalf(6)),  # type: ignore
         )
         res = re.sub(r"\.0+([e\*]|$)", r"\1", res)
 
@@ -148,8 +152,22 @@ class Val(ABC):
         # TODO: use superscript for exponents
 
         return res
+    
+    def eval(self, precision: int = 6):
+        "Return a new Val with consts evaluated to their floating point equivalent with given precision"
+        return self.__class__(self.units, self.expr.evalf(precision))
 
     def in_units(self, units: Union[Literal["SI"], "Val"]) -> Self:
+        """
+        Return a new Val with the same value but in the specified units. The expr of the new Val will be rescaled as necessary if units change the scaling factor.
+
+        If units is "SI", convert to the default SI units for this value's dimension.
+
+        If units is a `Val`, attempt to convert to the units of that value. Their underlying dimensionality must be equivalent.
+
+        See also: `.re()` for replacing units rather than converting
+        """
+        
         if isinstance(units, str):
             assert units == "SI", f"Only 'SI' is supported. Got {units}"
             new_units = UnitSystem.get_unit_system(units)._base_units
@@ -164,6 +182,21 @@ class Val(ABC):
         new_val = units_factor * self.expr
 
         return self.__class__(new_units, new_val)
+
+    def re(self, units: "Val") -> "Val":
+        """
+        Return a new value with the same value but replaced units.
+
+        Useful for defining functions of other values with numeric literals in place of dimensionally-accurate Vals.
+
+        For example,
+        >>> acceleration = (6 * t).re(m/s**2)
+        6*t meters/second**2
+        >>> voltage = (3 * sqrt(t)).re(V)
+        3*t**0.5 volts
+        """
+        assert units.expr == 1, f"valid units must have an expr == 1. Got {units}"
+        return Val(units.units, self.expr)
 
     def __add__(self, other: "Q[Self]") -> Self:
         return self._sum_op(other, lambda a, b: a + b, "+", False)
@@ -190,19 +223,11 @@ class Val(ABC):
 
             # TODO: support variables which are functions of a symbol other than t. should this be a fn() fn?
             if "(" in other:
-                assert (
-                    other.count("(") == 1 and other.count(")") == 1 and other[-1] == ")"
-                ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x)'. Insted got {other}"
 
-                function_name, the_rest = other.split("(")
-                function_of = [x.strip() for x in the_rest[:-1].split(",")]
-                if len(function_of) == 1 and function_of[0] == "t":
-                    sym: sympy.Expr = dynamicsymbols(function_name) # type: ignore
+                caller_frame = inspect.currentframe().f_back # type: ignore
+                assert caller_frame
+                sym = _sym_func(other, caller_frame)
 
-                else:
-                    raise NotImplementedError(
-                        "Only variables which are functions of time are supported at this time"
-                    )
             else:
                 sym = sympy.Symbol(other)
 
@@ -219,21 +244,45 @@ class Val(ABC):
         return self._prod_op(other, lambda a, b: b / a, is_pow=False)
 
     def __pow__(self, other: "Q[Val]") -> "Val":
+        from mathpad.vector_space import VectorSpace
+        from mathpad.vector import Vector
+        from mathpad.matrix import Matrix
+
         # exponents should always be dimensionless
         if isinstance(other, Val) and not _is_dimensionless(other.dimension):
             raise DimensionalExponentError(
                 f"Exponents must always be dimensionless. Instead got {other.dimension}: {other}"
             )
-        return self._prod_op(other, lambda a, b: a ** b, is_pow=True)
+        
+        other_expr = other.expr if isinstance(other, Val) else other
+
+        new_expr = self.expr if other_expr == 1 else self.expr ** other_expr
+        new_units = self.units ** other_expr
+
+        new_dims = _units2dimensional_expr(new_units)
+        dimension_unchanged = dimsys_SI.equivalent_dims(
+            self.dimension, new_dims
+        )
+
+        if dimension_unchanged:
+            res = self.__class__(new_units, new_expr) # type: ignore
+
+        elif new_units == Dimensionless.base_units:
+            res = Dimensionless(new_units, new_expr)  # type: ignore
+
+        else:
+            # TODO: a big lookup table for dimensional expr -> Val subclass
+            res = Val(new_units, new_expr)  # type: ignore
+
+        return res
 
     def __rpow__(self, other: Num) -> "Dimensionless":
         if not _is_dimensionless(self.dimension):
             raise DimensionalExponentError(
                 f"Exponents must always be dimensionless. Instead got {self.dimension}: {self}"
             )
-        res = self._prod_op(other, lambda a, b: b ** a, is_pow=True)
-        assert isinstance(res, Dimensionless)
-        return res
+        
+        return Dimensionless(1, other ** self.expr)
 
     def _sum_op(
         self,
@@ -242,9 +291,9 @@ class Val(ABC):
         op_str: str,
         reverse: bool,
     ) -> Self:
-        from mathpad.vector import Vec
+        from mathpad.vector import Vector
 
-        assert not isinstance(other, Vec)
+        assert not isinstance(other, Vector)
 
         other_units, other_val = (
             (other.units, other.expr) if isinstance(other, Val) else (self.units, other)
@@ -274,13 +323,7 @@ class Val(ABC):
 
         res = self.__class__(new_units, new_val)
 
-        if _global_options.auto_simplify:
-            from mathpad.algebra import simplify
-
-            return simplify(res) # type: ignore
-
-        else:
-            return res # type: ignore
+        return res # type: ignore
 
     def _prod_op(
         self,
@@ -289,9 +332,10 @@ class Val(ABC):
         is_pow: bool,
     ) -> "Val":
         from mathpad.vector_space import VectorSpace
-        from mathpad.vector import Vec
+        from mathpad.vector import Vector
+        from mathpad.matrix import Vector, Matrix
 
-        if isinstance(other, (Vec, VectorSpace)):
+        if isinstance(other, (Vector, VectorSpace, Matrix)):
             # let the Vector/VectorSpace obj handle the multiplication by returning NotImplemented
             return NotImplemented
 
@@ -307,31 +351,35 @@ class Val(ABC):
         if isinstance(new_val, sympy.Expr):
             new_val = quantity_simplify(new_val)
 
+        # _units2dimensional_expr doesn't handle exponent radians properly. Do it manually here:
+        if isinstance(new_units, sympy.Pow):
+            new_exp = quantity_simplify(new_units.exp.subs({ su.radian: 1})) # type: ignore
+            new_units = new_units.base ** new_exp
+
+        new_dims = _units2dimensional_expr(new_units)
+            
         dimension_unchanged = dimsys_SI.equivalent_dims(
-            self.dimension, _units2dimensional_expr(new_units)
+            self.dimension, new_dims
         )
 
         if dimension_unchanged:
             res = self.__class__(new_units, new_val) # type: ignore
 
-        elif new_units == Dimensionless.default_units:
+        elif new_units == Dimensionless.base_units:
             res = Dimensionless(new_units, new_val)  # type: ignore
 
         else:
             # TODO: a big lookup table for dimensional expr -> Val subclass
             res = Val(new_units, new_val)  # type: ignore
 
-        if _global_options.auto_simplify:
-            from mathpad.algebra import simplify
-
-            return simplify(res)
-
-        else:
-            return res
+        return res
 
 
-ValT = TypeVar("ValT", bound=Val)
+ValT = TypeVar("ValT", bound=Val, contravariant=True)
 Q = Union[ValT, Num, Val]
+"Any Val, specific or not - or a number"
+X = Union[ValT, Val]
+"Any Val, specific or not - but not a number"
 
 
 class DimensionError(TypeError):
@@ -340,7 +388,7 @@ class DimensionError(TypeError):
     def check(cls, a: Val, b: Val):
         
         if _is_dimensionless(a.dimension) and _is_dimensionless(b.dimension):
-            # equivalent_dims() doesn't handle this case properly so we have to do it manually
+            # equivalent_dims() doesn't handle this case properly
             return
 
         if not dimsys_SI.equivalent_dims(a.dimension, b.dimension):
@@ -381,7 +429,7 @@ def _split_coeff_and_units(unit_expr: sympy.Expr) -> Tuple[float, Any]:
     # TODO: test and refactor
     converted = quantity_simplify(unit_expr)  # type: ignore
     if converted.is_Number:
-        return converted, Dimensionless.default_units  # type: ignore
+        return converted, Dimensionless.base_units  # type: ignore
 
     try:
         units_factor = converted.args[0]
@@ -394,24 +442,22 @@ def _split_coeff_and_units(unit_expr: sympy.Expr) -> Tuple[float, Any]:
     return 1, unit_expr
 
 
-def _is_primitive_num(x: Q[Val]):
-    return isinstance(x, (int, float, complex))
-
-
 class Unit(Val):
 
     dimension: Union[su.Dimension, sympy.Expr]
+    base_units: Union[su.Quantity, sympy.Expr]
     
     def __init_subclass__(cls):
         # ensure that subclasses specify a dimension
-        assert hasattr(cls, "dimension"), f"{cls} must specify a dimension"
+        assert hasattr(cls, "dimension"), f"{cls} must specify dimension"
+        assert hasattr(cls, "base_units"), f"{cls} must specify base_units"
         return super().__init_subclass__()
 
 
 class Dimensionless(Unit):
 
     dimension = su.Dimension(1)  # type: ignore
-    default_units = sympy.sympify(1)
+    base_units = sympy.sympify(1)
 
     def __init__(
         self,
@@ -420,7 +466,7 @@ class Dimensionless(Unit):
     ):
         # measures of angle are technically dimensionless
         assert _is_dimensionless(_units2dimensional_expr(units))
-        super().__init__(units, val)
+        super().__init__(units, val) # type: ignore
 
 def _is_dimensionless(dimension):
     from mathpad.dimensions import Angle, AngularMil, SteRadian
@@ -429,7 +475,6 @@ def _is_dimensionless(dimension):
     if isinstance(dimension, Dimension):
         dimension = dimension.args[0]
 
-    # TODO: clean up this mess of a function
     return (
         dimension in [
             1,
@@ -441,3 +486,28 @@ def _is_dimensionless(dimension):
         ]
         or dimsys_SI.get_dimensional_dependencies(dimension) == {}
     )
+
+def _sym_func(text: str, caller_frame: FrameType) -> sympy.Expr:
+    assert (
+        text.count("(") == 1 and text.count(")") == 1 and text[-1] == ")"
+    ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x[, y, ...])'. Insted got {other}"
+
+    function_name, depstr = text.split("(")
+    deps = [x.strip() for x in depstr[:-1].split(",")]
+
+    caller_vars = {**caller_frame.f_locals, **caller_frame.f_globals}
+    dep_syms = []
+    for dep in deps:
+
+        val: Optional[Val] = caller_vars.get(dep, None)
+        assert val, f"Symbolic Function {text} depends on unknown symbol {dep}. " \
+            "Please ensure a variable with this name is defined in the caller's scope."
+        
+        assert isinstance(val.expr, (sympy.Symbol, sympy.Function)), \
+            f"Variable {text} depends on non-symbolic Val '{val}'. \n" \
+            f"Expected {dep}.expr to be a sympy.Symbol, but got {val.expr} ({type(val.expr)})."
+        
+        dep_syms.append(val.expr)
+        
+    sym = sympy.Function(function_name)(*dep_syms) # type: ignore
+    return sym
