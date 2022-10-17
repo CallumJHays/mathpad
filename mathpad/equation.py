@@ -51,8 +51,6 @@ class Equation:
             self.lhs = lhs if lhs_is_val else val_cls(self.units, lhs) # type: ignore
             self.rhs = rhs if rhs_is_val else val_cls(self.units, rhs) # type: ignore
 
-            assert self.lhs.units == self.units == self.rhs.units # type: ignore - sanity check
-
         else:
             # both are Vector. handle unit conversion and rescaling if necessary.
             assert isinstance(lhs, Vector) and isinstance(rhs, Vector)

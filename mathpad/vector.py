@@ -160,7 +160,7 @@ class Vector(Generic[VectorSpaceT]):
     def __neg__(self) -> Self:
         return self.__class__(self.space, -self.expr) # type: ignore
         
-    def norm(self):
+    def norm(self) -> Val:
         """
         Returns the norm / magnitude of this vector
 
@@ -174,7 +174,7 @@ class Vector(Generic[VectorSpaceT]):
         except SumDimensionsMismatch:
             raise ValueError("Cannot take the norm of a vector with non-uniform units")
 
-        return sqrt(norm_squared)
+        return sqrt(norm_squared) # type: ignore
     
     def __mul__(self, other: Q[Val]):
         return Vector(

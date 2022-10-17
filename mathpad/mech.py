@@ -21,18 +21,23 @@ def gravitational_energy(*, m: X[Mass], h: X[Length], g: X[Acceleration]) -> Ene
 @mathpad_constructor
 def euler_lagrange(
     *,
-    sum_kinetic_energy: X[Energy],
-    sum_potential_energy: X[Energy],
-    sum_non_conservative_forces: X[Force],
-    state: Val,
+    KE: X[Energy],
+    PE: X[Energy],
+    NCF: X[Force],
+    var: Val,
 ) -> Equation:
     """
     Euler-Lagrange equation for a system of particles.
 
+    Arguments:
+        sum_KE: sum of kinetic energies of particles
+        sum_PE: sum of potential energies of particles
+        sum_NCF: sum of net contact forces on particles
+        var: variable you are interested in finding the dynamics for
     
     """
-    L = sum_kinetic_energy - sum_potential_energy
-    return diff(diff(L, wrt=diff(state)), wrt=t) - diff(L, wrt=state) == sum_non_conservative_forces # type: ignore
+    L = KE - PE
+    return diff(diff(L, wrt=diff(var)), wrt=t) - diff(L, wrt=var) == NCF # type: ignore
 
 
 @mathpad_constructor
