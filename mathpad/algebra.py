@@ -1,5 +1,6 @@
 from typing import ItemsView, KeysView, TypeVar, Union, ValuesView, overload
 from typing_extensions import Protocol
+
 import sympy
 
 from mathpad.val import Q, ValT, Val
