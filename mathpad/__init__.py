@@ -1,3 +1,12 @@
+try:
+    # pre-load required packages if we are running in pyodide.
+    # if we don't do this, we get import errors even though the modules are importable from the IPython console.
+    import micropip
+    micropip.install(['sympy', 'typing_extensions', 'plotly', 'scipy', 'tqdm'])
+except ImportError:
+    # if micropip isn't available, we're not running in pyodide.
+    pass
+
 import sympy
 
 from mathpad.val import *
