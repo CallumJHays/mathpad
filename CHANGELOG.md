@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2022-10-25)
+### Feature
+* Micropip install in deps before imports to fix and clean examples ([`3be2d8e`](https://github.com/CallumJHays/mathpad/commit/3be2d8ec8dc03ed311fd7f6861ff7c0811fcef85))
+
+### Documentation
+* **sandbox:** Use custom pyodide dist with requirements preloaded for smoother experience ([`64325e2`](https://github.com/CallumJHays/mathpad/commit/64325e2df4948d2d8f4f43dba40c6639c8c26eb0))
+
 ## v1.0.0 (2022-10-17)
 ### Feature
 * Add matrices and complete Walkthrough.ipynb ([`6aad4ea`](https://github.com/CallumJHays/mathpad/commit/6aad4eabe2bf53fd89c0b7732d1663f006ea8c0e))

@@ -35,4 +35,4 @@ except ImportError:
 sympy.init_printing()  # type: ignore
 sympy.printing.printer.Printer.set_global_settings(min=-3, max=4)  # type: ignore
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
