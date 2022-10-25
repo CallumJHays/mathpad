@@ -20,16 +20,15 @@ jobs:
           python-version: 3.8
       - name: Install the dependencies
         run: |
-          python -m pip install -r jupyterlite/requirements.txt
+          python -m pip install -r jupyterlite-sandbox/requirements.txt
       - name: Build the JupyterLite site
         run: |
-          cp -r examples/* jupyterlite/content/
-          cd jupyterlite
+          cd jupyterlite-sandbox
           jupyter lite build --contents content --output-dir dist
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./jupyterlite/dist
+          path: ./jupyterlite-sandbox/dist
 
   deploy:
     needs: build
