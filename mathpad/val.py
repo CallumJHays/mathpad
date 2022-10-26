@@ -73,7 +73,7 @@ class Val:
 
     def __eq__(self, other: "Q[Val]") -> "Equation":
         if isinstance(other, Val):
-            SumDimensionsMismatch.check(self, "==", other)
+            SumDimensionsMismatchError.check(self, "==", other)
         return Equation(self, other)
 
     def __req__(self, other: Num) -> "Equation":
@@ -173,7 +173,7 @@ class Val:
             new_units = UnitSystem.get_unit_system(units)._base_units
 
         else:
-            SumDimensionsMismatch.check(self, ".in_units", units)
+            SumDimensionsMismatchError.check(self, ".in_units", units)
             new_units = units.units
 
         units_factor, new_units = _split_coeff_and_units(
@@ -300,7 +300,7 @@ class Val:
         )
 
         if isinstance(other, Val):
-            SumDimensionsMismatch.check(
+            SumDimensionsMismatchError.check(
                 other if reverse else self, op_str, self if reverse else other
             )
 
@@ -405,7 +405,7 @@ class DimensionalExponentError(DimensionError):
             raise cls(f"Exponent must be dimensionless: {exponent.dimension}")
 
 
-class SumDimensionsMismatch(DimensionError):
+class SumDimensionsMismatchError(DimensionError):
     def __init__(
         self,
         left: Val,

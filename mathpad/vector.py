@@ -6,7 +6,7 @@ from sympy.physics.vector import vlatex
 from sympy.vector import Dot, Vector
 from sympy import MatrixSymbol, Matrix, MatrixExpr, Expr, Derivative, Function
 
-from mathpad.val import DimensionError, SumDimensionsMismatch, Val, Q
+from mathpad.val import DimensionError, SumDimensionsMismatchError, Val, Q
 from mathpad.vector_space import VectorSpaceT
 from mathpad.equation import Equation
 
@@ -68,7 +68,7 @@ class Vector(Generic[VectorSpaceT]):
     def __eq__(self, other: 'Vector') -> "Equation":
         
         for a, b in zip(self.space.base_units, other.space.base_units):
-            SumDimensionsMismatch.check(a, "==", b) # type: ignore
+            SumDimensionsMismatchError.check(a, "==", b) # type: ignore
 
         return Equation(self, other)
     
@@ -82,7 +82,7 @@ class Vector(Generic[VectorSpaceT]):
             f"Cannot add {type(other)} to {type(self)}"
 
         for a, b in zip(self.space.base_units, other.space.base_units):
-            SumDimensionsMismatch.check(a, "==", b) # type: ignore
+            SumDimensionsMismatchError.check(a, "==", b) # type: ignore
 
         assert self.space is other.space, \
             f"Cannot add vectors of different VectorSpaces: {self.space} + {other.space}"
@@ -99,7 +99,7 @@ class Vector(Generic[VectorSpaceT]):
         "self - other"
         
         for a, b in zip(self.space.base_units, other.space.base_units):
-            SumDimensionsMismatch.check(a, "==", b)
+            SumDimensionsMismatchError.check(a, "==", b)
 
         assert self.space is other.space, \
             f"Cannot subtract vectors of different VectorSpaces: {self.space} - {other.space}"
@@ -171,7 +171,7 @@ class Vector(Generic[VectorSpaceT]):
 
         try:
             norm_squared = sum(val ** 2 for val in self)
-        except SumDimensionsMismatch:
+        except SumDimensionsMismatchError:
             raise ValueError("Cannot take the norm of a vector with non-uniform units")
 
         return sqrt(norm_squared) # type: ignore
