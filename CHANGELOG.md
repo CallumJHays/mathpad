@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2022-10-26)
+### Feature
+* Add @mathpad_constructor to elec module where valid ([`806a4d6`](https://github.com/CallumJHays/mathpad/commit/806a4d62f62cc8b243057bd7d2de43868aa195a9))
+
+### Fix
+* Export all dimensions in from mathpad import * ([`eb06884`](https://github.com/CallumJHays/mathpad/commit/eb06884373d1e37e8d3e018ac46b6203f51be537))
+* Rename precision arg to sigfigs for clarity ([`4154d4e`](https://github.com/CallumJHays/mathpad/commit/4154d4e5ebf3a3109a9e998060c1cf8263644f35))
+* Rename SumDimensionMismatch to SumDimensionMismatchError ([`43b6b4e`](https://github.com/CallumJHays/mathpad/commit/43b6b4e65449b74395775a6b716a6ec887b6f929))
+
+### Documentation
+* Update Walkthrough ([`123a981`](https://github.com/CallumJHays/mathpad/commit/123a981cc78c7d3c613fac535f94a47f8c3f2119))
+* Print docstr before returning in MathPadConstructor._repr_latex_() ([`3882a7d`](https://github.com/CallumJHays/mathpad/commit/3882a7d9c7bff8970ecf64d7b55c05fc44b23d6e))
+* Document kinetic_energy constructor ([`04990da`](https://github.com/CallumJHays/mathpad/commit/04990daaca76e88e6dedb596685ba989ff13dad3))
+* **readme:** Small edits ([`f5ab81c`](https://github.com/CallumJHays/mathpad/commit/f5ab81ceab97bb63b5aa168e0ae52eab4b7a672d))
+
 ## v1.1.0 (2022-10-25)
 ### Feature
 * Micropip install in deps before imports to fix and clean examples ([`3be2d8e`](https://github.com/CallumJHays/mathpad/commit/3be2d8ec8dc03ed311fd7f6861ff7c0811fcef85))
