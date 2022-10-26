@@ -10,6 +10,7 @@ except ImportError:
 import sympy
 
 from mathpad.val import *
+from mathpad.dimensions import *
 from mathpad.units import *
 
 from mathpad.solve import solve, Solution
