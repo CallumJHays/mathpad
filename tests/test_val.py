@@ -114,7 +114,7 @@ def test_add_meters_seconds_fails():
     try:
         a + b  # type: ignore
         assert False
-    except SumDimensionsMismatch:
+    except SumDimensionsMismatchError:
         assert True
 
 
@@ -170,7 +170,7 @@ def test_sub_meters_seconds_fails():
     try:
         a - b  # type: ignore
         assert False
-    except SumDimensionsMismatch:
+    except SumDimensionsMismatchError:
         assert True
 
 
