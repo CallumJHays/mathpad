@@ -15,7 +15,6 @@ __all__ = ["as_numpy_func"]
 # Until a contravariant Map type is added to typing, we have to use this
 # https://github.com/python/typing_extensions/issues/5#issue-1241825018
 
-# VecOrVal = TypeVar("VecOrVal", bound=Val, covariant=True)
 ArrayOrNum = TypeVar("ArrayOrNum", bound=Union[Num, ArrayLike], covariant=True)
 
 class ArgMap(Protocol[ValT, ArrayOrNum]):
