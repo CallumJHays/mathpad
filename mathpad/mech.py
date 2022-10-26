@@ -4,8 +4,24 @@ from mathpad import *
 
 @mathpad_constructor
 def kinetic_energy(*, m: X[Mass], v: X[Velocity]) -> Energy:
-    "Energy of a moving object"
-    return m * v ** 2 / 2  # type: ignore
+    """
+    Calculate the kinetic energy of a particle.
+
+    Args:
+        m: Mass of the particle
+        v: Velocity of the particle
+    
+    Returns:
+        Kinetic energy of the particle in joules
+
+    Example:
+        >>> kinetic_energy(m=1 * kg, v=2 * m/s)
+        2 joules
+        >>> kinetic_energy(m="m" * kg, v="v" * m/s)
+        0.5*mv**2 joules
+
+    """
+    return (m * v ** 2 / 2).in_units(joules)  # type: ignore
 
 
 @mathpad_constructor
