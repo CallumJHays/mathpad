@@ -1,6 +1,7 @@
 from typing import List
 from mathpad import *
 
+@mathpad_constructor
 def resistance_resistivity(
     *,
     R: X[Impedance],  # resistance
@@ -12,6 +13,7 @@ def resistance_resistivity(
     return R == rho * l * A
 
 
+@mathpad_constructor
 def ohms_law(
     *,
     R: X[Impedance],  # resistance
@@ -25,6 +27,8 @@ def ohms_law(
     """
     return V == I * R
 
+# TODO: support List[X[Voltage]] in @mathpad_constructor
+# @mathpad_constructor
 def kerchoffs_voltage_law(
     *,
     producers: List[X[Voltage]],  # voltage sources
@@ -44,6 +48,8 @@ def kerchoffs_voltage_law(
     return sum(producers) == sum(consumers) # type: ignore - assert should prevent both being 0 length lists
 
 
+# TODO: support List[X[Voltage]] in @mathpad_constructor
+# @mathpad_constructor
 def kerchoffs_current_law(
     *,
     into: List[X[Current]],  # current into node
