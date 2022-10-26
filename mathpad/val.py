@@ -153,9 +153,9 @@ class Val:
 
         return res
     
-    def eval(self, precision: int = 6):
-        "Return a new Val with consts evaluated to their floating point equivalent with given precision"
-        return self.__class__(self.units, self.expr.evalf(precision))
+    def eval(self, sigfigs: int = 6):
+        "Return a new Val with consts evaluated to their floating point equivalent with number of sigfigs"
+        return self.__class__(self.units, self.expr.evalf(sigfigs))
 
     def in_units(self, units: Union[Literal["SI"], "Val"]) -> Self:
         """
