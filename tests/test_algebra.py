@@ -21,6 +21,11 @@ def test_R3_sym_subs():
     eqn = subs(vec, {x: x2, y: y2, z: z2}) == vec2
     assert eqn.eval()
 
+def test_sym_factor():
+    x = "x" * dimensionless
+    eqn = factor(x**3 - x**2 + x - 1) == (x - 1) * (x**2 + 1)
+    assert eqn.eval()
+
 def test_R3_sym_simplify():
     O = R3("O")
     x = "x" * m
