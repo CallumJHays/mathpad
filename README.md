@@ -42,16 +42,16 @@ MathPad is ideal for engineering students and academics seeking to easily check 
 
 Features:
 - Intuitive interface for those unfamiliar with Python
-- Easy-to-use construction of systems of equations - goodbye hand calculations!
+- Easy-to-use solving of systems of equations - goodbye hand calculations!
 - Self-explanatory latex output
 - Automatic dimensionality validity checking
 - Automatic unit conversion
-- Easy simulation of differential systems of equations / initial value problem
-- Growing library of equations and constants to utilize
+- Easy simulation of systems of differential equations / initial value problem
+- Growing library of equations and application-specific Val constructors to utilize
 
 ## Documentation
 
-Currently the only documentation is `Walkthrough.ipynb`. You can access it on the [JupyterLite Sandbox Site here](https://callumjhays.github.io/mathpad/lab?path=Walkthrough.ipynb)
+Currently the only documentation is `Walkthrough.ipynb`. You can access it on the [JupyterLite Sandbox Site here](https://callumjhays.github.io/mathpad/lab?path=Walkthrough.ipynb). 
 
 
 ## Installation
