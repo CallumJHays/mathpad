@@ -1,7 +1,6 @@
 from types import FrameType
-from typing import TYPE_CHECKING, Any, Optional, Tuple, Union, TypeVar, overload, Callable
+from typing import Any, Collection, Iterator, Optional, Tuple, Type, Union, TypeVar, overload, Callable
 import re
-from abc import ABC
 from typing_extensions import Self, Literal
 import inspect
 
@@ -226,12 +225,16 @@ class Val:
 
                 caller_frame = inspect.currentframe().f_back # type: ignore
                 assert caller_frame
-                sym = _sym_func(other, caller_frame)
+                
+                func_name, _depstr = other.split("(") # TODO: refactor similar implementation with VectorSpace.__rmatmul__
+                deps = _extract_deps_from_fn_str(other, caller_frame, allow_only=(sympy.Function, sympy.Symbol))
+
+                expr = sympy.Function(func_name)(*(d.expr for d in deps)) # type: ignore
 
             else:
-                sym = sympy.Symbol(other)
+                expr = sympy.Symbol(other)
 
-            return self.__class__(self.units, sym)
+            return self.__class__(self.units, expr) # type: ignore
 
         else:
             return self._prod_op(other, lambda a, b: b * a, is_pow=False)
@@ -487,27 +490,24 @@ def _is_dimensionless(dimension):
         or dimsys_SI.get_dimensional_dependencies(dimension) == {}
     )
 
-def _sym_func(text: str, caller_frame: FrameType) -> sympy.Expr:
+def _extract_deps_from_fn_str(name: str, caller_frame: FrameType, allow_only: Collection[Type[sympy.Expr]]) -> Iterator[Val]:
     assert (
-        text.count("(") == 1 and text.count(")") == 1 and text[-1] == ")"
-    ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x[, y, ...])'. Insted got {other}"
+        name.count("(") == 1 and name.count(")") == 1 and name[-1] == ")"
+    ), f"Malformed variable name. Variables which are functions of symbols must take the form 'f(x[, y, ...])'. Insted got {name}"
 
-    function_name, depstr = text.split("(")
+    _function_name, depstr = name.split("(")
     deps = [x.strip() for x in depstr[:-1].split(",")]
 
     caller_vars = {**caller_frame.f_locals, **caller_frame.f_globals}
-    dep_syms = []
+    
     for dep in deps:
 
         val: Optional[Val] = caller_vars.get(dep, None)
-        assert val, f"Symbolic Function {text} depends on unknown symbol {dep}. " \
+        assert val, f"Symbolic Function {name} depends on unknown symbol {dep}. " \
             "Please ensure a variable with this name is defined in the caller's scope."
         
-        assert isinstance(val.expr, (sympy.Symbol, sympy.Function)), \
-            f"Variable {text} depends on non-symbolic Val '{val}'. \n" \
-            f"Expected {dep}.expr to be a sympy.Symbol, but got {val.expr} ({type(val.expr)})."
+        assert isinstance(val.expr, tuple(allow_only)), \
+            f"Variable {name} depends on non-symbolic Val '{val}'. \n" \
+            f"Expected {dep}.expr to be one of {allow_only}, but got {val.expr} ({type(val.expr)})."
         
-        dep_syms.append(val.expr)
-        
-    sym = sympy.Function(function_name)(*dep_syms) # type: ignore
-    return sym
+        yield val

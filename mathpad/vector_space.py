@@ -6,19 +6,20 @@ from typing import (
     Union,
     Tuple,
     Generic,
-    TypeVar,
-    overload,
+    TypeVar
 )
 import inspect
 from typing_extensions import Self, TypeVarTuple, Unpack
 
 import sympy
-from sympy import MatrixExpr
+from sympy import MatrixSymbol
 from sympy.physics.vector import vlatex
 
 from mathpad.dimensions import Angle, Length
-from mathpad.val import Val, Q, _sym_func
+from mathpad.val import Val, Q, _extract_deps_from_fn_str
 from mathpad.units import meter
+
+from mathpad.SymbolicMatrixFunction import SymbolicMatrixFunction
 
 if TYPE_CHECKING:
     from mathpad.vector import Vector
@@ -101,6 +102,7 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
         
     def __repr__(self) -> str:
         # wrap units in a matrix so it prints nicely
+        # TODO: make output optimal for both latex and terminal somehow
         return repr(sympy.Matrix([
             unit.units # type: ignore
             for unit in self.base_units
@@ -136,7 +138,6 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
 
         return f"$$ {full_ltx} $$" if wrapped else full_ltx
 
-    
     @classmethod
     def _get_output_space(
         cls,
@@ -191,41 +192,41 @@ class VectorSpace(Generic[Unpack[BaseUnits]], ABC):
             self.name
         )
 
-    @overload
-    def __rmul__(self, other: Val) -> 'VectorSpace':
-        ...
-    
-    @overload
-    def __rmul__(self, other: 'str') -> 'Vector[Self]':
-        ...
-    
-    def __rmul__(self, other: Union[Val, str]) -> Union['VectorSpace', 'Vector[Self]']:
+    def __rmul__(self, other: Val) -> Union['VectorSpace', 'Vector[Self]']:
+        return self._get_output_space(
+            other,
+            self,
+            lambda a, b: a * b,
+            self.name
+        )
+
+
+    def __rmatmul__(self, repr: str) -> 'Vector[Self]':
         from mathpad.vector import Vector
 
-        if isinstance(other, str):
+        if "(" in repr:
+            # This must be a symbolic function definition.
+            # Get the caller frame to find the variables referenced in the string definition
+            caller_frame = inspect.currentframe().f_back # type: ignore
+            assert caller_frame
 
-            if "(" in other:
-                # This must be a symbolic function definition
-                caller_frame = inspect.currentframe().f_back # type: ignore
-                assert caller_frame
+            deps = list(_extract_deps_from_fn_str(repr, caller_frame, (sympy.Function, sympy.Symbol)))
 
-                name, rest = other.split("(")
-                sym = "\\vec{" + name + "}(" + rest
+            func_name, _depstr = repr.split("(")
 
-                # construct a symbolic vector as a function of specified dependencies
-                expr: MatrixExpr = _sym_func(sym, caller_frame) # type: ignore
-                return Vector(self, expr)
-            
-            else:
-                return Vector(self, other)
+            name = "\\vec{" + func_name + "}"
+
+            # construct a symbolic vector as a function of specified dependencies
+            expr = SymbolicMatrixFunction(name, len(self.base_units), 1,
+                [d.expr for d in deps])  # type: ignore
+            # expr: MatrixExpr = MatrixExpr(_sym_func(sym, caller_frame))
+            return Vector(self, expr)
 
         else:
-            return VectorSpace._get_output_space(
-                other,
-                self,
-                lambda a, b: a * b,
-                self.name
-            )
+            return Vector(self,
+                MatrixSymbol("\\vec{" + repr + "}", len(self.base_units), 1)) # type: ignore
+
+
 
 VectorSpaceT = TypeVar("VectorSpaceT", bound=VectorSpace)
 

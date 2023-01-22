@@ -10,7 +10,7 @@ def test_R3_disp():
 
 def test_R3_disp_sym():
     O = R3("O")
-    vec = "vec" * O
+    vec = "vec" @ O
 
     assert str(vec) == '\\vec{vec} wrt. O'
 
@@ -115,7 +115,7 @@ def test_R3_dot():
 
 def test_R3_sym_dot():
     O = R3("O")
-    vec = "vec" * O
+    vec = "vec" @ O
     vec2 = O[1, 2, 3]
     
     x1, y1, z1 = vec
@@ -126,7 +126,7 @@ def test_R3_sym_dot():
 
 def test_R3_sym_add():
     O = R3("O")
-    vec = "vec" * O
+    vec = "vec" @ O
     vec2 = O[1, 2, 3]
 
     # TODO: get matrix expressions printing better as str()
@@ -141,7 +141,7 @@ def test_R3_sym_add():
 
 def test_R3_sym_cross():
     O = R3("O")
-    vec = "vec" * O
+    vec = "vec" @ O
     vec2 = O[1, 2, 3]
 
     eqn = vec.cross(vec2) == O[
@@ -203,4 +203,4 @@ def test_R3_integral_syms():
 
 def test_R3_sym_func():
     O = R3("O")
-    vec = "vec(t)" * O
+    vec = "vec(t)" @ O

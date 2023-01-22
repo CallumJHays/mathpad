@@ -105,3 +105,9 @@ def test_Val_mul_VectorSpace():
 
     for units in (m * O).base_units:
         assert units == m**2
+
+def test_create_vector_function():
+    x = "x" * m
+    s = "s(x)" @ R3("O")
+    v = diff(s, wrt=x)
+    print(v)
