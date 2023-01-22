@@ -167,14 +167,12 @@ class Vector(Generic[VectorSpaceT]):
         Raises:
             ValueError: if the vector does not have uniform dimensionality (each base_unit in the vector space must be equivalent)
         """
-        from mathpad.functions import sqrt
+        assert len(set(self.space.base_units)) == 1, "Cannot take the norm of a vector with non-uniform units"
 
-        try:
-            norm_squared = sum(val ** 2 for val in self)
-        except SumDimensionsMismatchError:
-            raise ValueError("Cannot take the norm of a vector with non-uniform units")
-
-        return sqrt(norm_squared) # type: ignore
+        return Val(
+            self.expr.norm(), # type: ignore
+            self.space.base_units[0] ** 2
+        )
     
     def __mul__(self, other: Q[Val]):
         return Vector(
