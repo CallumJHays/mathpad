@@ -190,7 +190,7 @@ def simulate_dynamic_system(
         ]
 
         # outputs are highest of input derviatives plus recorded data
-        # ie [dddx, record[0], record[1]]
+        # ie [ddx, ddy, record[0], record[1]]
         lambdified = lambdify([x_axis.expr, inputs], solution_vec, 'numpy')
 
         data = []
@@ -285,7 +285,7 @@ def simulate_dynamic_system(
                         "yanchor": "top",
                     },
                 },
-            ).show("svg" if plot_static else None)
+            ).show("svg" if plot_static else None) # type: ignore
 
         all_data.extend(data)
 
