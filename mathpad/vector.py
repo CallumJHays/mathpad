@@ -1,15 +1,16 @@
 
-from typing import Generic, Sequence, Union, Any, TypeVar
+from typing import Generic, Sequence, Union, Any
 from typing_extensions import Self
 
 from sympy.physics.vector import vlatex
-from sympy.vector import Dot, Vector
+from sympy.vector import Dot, Vector as SympyVector
 from sympy import MatrixSymbol, Matrix, MatrixExpr, Expr, Derivative, Function
 
 from mathpad.val import DimensionError, SumDimensionsMismatchError, Val, Q
 from mathpad.vector_space import VectorSpaceT
 from mathpad.equation import Equation
 
+__all__ = ["Vector"]
 
 class Vector(Generic[VectorSpaceT]):
     """
@@ -298,7 +299,7 @@ class Vector(Generic[VectorSpaceT]):
                 f" (base names are {self.space.base_names})"
             )
         
-    class Cross(Vector):
+    class Cross(SympyVector):
         """
         A custom Cross product class that works with matrices instead of vectors.
         Also gets rid of some weird negation behaviour (see sympy.vector.vector.Cross's __new__ method)
@@ -322,8 +323,6 @@ class Vector(Generic[VectorSpaceT]):
         def doit(self, **hints):
             return self._expr1.dot(self._expr2, **hints) # type: ignore
 
-
-VecT = TypeVar('VecT', bound=Vector)
 
 def _broken_rtruediv(self: Vector[Any], other: Q[Val]):
     "Make it obvious that this is impossible, but don't let the type checker know this method is implemented"
