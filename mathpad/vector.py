@@ -325,8 +325,8 @@ class Vector(Generic[VectorSpaceT]):
 
 VecT = TypeVar('VecT', bound=Vector)
 
-def _broken_rtruediv(_self: Vector, other: Q[Val]):
+def _broken_rtruediv(self: Vector[Any], other: Q[Val]):
     "Make it obvious that this is impossible, but don't let the type checker know this method is implemented"
-    assert isinstance(other, Vector), "Can only divide vectors by vectors. Got {other} / {self}"
+    assert isinstance(other, Vector), f"Can only divide vectors by vectors. Got {other} / {self}"
 
 setattr(Vector, '__rtruediv__', _broken_rtruediv)
