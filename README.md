@@ -1,7 +1,3 @@
-$$ \dot{\vec{vec}} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \frac{\text{m}}{\text{s}} \\ \hat{j} \cdot \frac{\text{m}}{\text{s}} \\ \hat{k} \cdot \frac{\text{m}}{\text{s}} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
-
-
 # mathpad
 
 <!-- TODO: set up all the services needed for these badges -->
