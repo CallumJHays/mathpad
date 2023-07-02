@@ -13,7 +13,7 @@ import plotly.io as pio
 
 from mathpad.core.val import Val
 from mathpad.core.equation import Equation
-from mathpad.math.algebra import subs, SubstitutionMap, simplify
+from mathpad.maths.algebra import subs, SubstitutionMap, simplify
 from mathpad.core.common_vals import t
 from tqdm import tqdm
 

@@ -85,7 +85,7 @@ class Frame(Generic[VectorSpaceT]):
         And if your theta is measured clockwise from the y axis, use -theta - pi/2,
         etc
         """
-        from mathpad.math.trigonometry import cos, sin
+        from mathpad.maths.trigonometry import cos, sin
         from mathpad.core.units import meter
         from mathpad.core.vector import Vector
 

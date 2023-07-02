@@ -193,7 +193,7 @@ class Vector(Generic[VectorSpaceT]):
         Raises:
             ValueError: if the vector does not have uniform dimensionality (each base_unit in the vector space must be equivalent)
         """
-        from mathpad.math.functions import sqrt
+        from mathpad.maths.functions import sqrt
 
         assert len(set(self.frame.space.base_units)) == 1, "Cannot take the norm of a vector with non-uniform units"
 

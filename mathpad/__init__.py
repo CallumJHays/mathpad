@@ -10,7 +10,7 @@ except ImportError:
 import sympy
 
 from mathpad.core import *
-from mathpad.math import *
+from mathpad.maths import *
 
 from mathpad.library.mathpad_constructor import mathpad_constructor
 from mathpad.simulate_dynamic_system import simulate_dynamic_system
