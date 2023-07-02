@@ -8,14 +8,11 @@ from sympy import Derivative
 import plotly.graph_objects as go
 from sympy.utilities.lambdify import lambdify
 from scipy.integrate import RK45
-from IPython.display import display
-import plotly.io as pio
 
 from mathpad.core.val import Val
 from mathpad.core.equation import Equation
 from mathpad.maths.algebra import subs, SubstitutionMap, simplify
 from mathpad.core.common_vals import t
-from tqdm import tqdm
 
 
 def simulate_dynamic_system(
@@ -40,6 +37,9 @@ def simulate_dynamic_system(
     _NEW_SOLVE: bool = False # TODO: fix this properly
 ) -> List[Tuple[float, List[float]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
+    from IPython.display import display
+    import plotly.io as pio
+    from tqdm import tqdm
 
     verbose = verbose or explain
 
