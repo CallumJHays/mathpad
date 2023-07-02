@@ -1,6 +1,6 @@
 
-from typing import TYPE_CHECKING, Generic, Iterator, Literal, Optional, Sequence, TypeVar, Union, Any
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Generic, Iterator, Optional, Sequence, TypeVar, Union, Any
+from typing_extensions import Self, Literal
 
 from sympy.physics.vector import vlatex
 from sympy.vector import Dot, Vector as SympyVector
