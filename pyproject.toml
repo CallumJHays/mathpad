@@ -33,11 +33,6 @@ plotly = "^5.3.1"
 k3d = "^2.15.2"
 
 
-[tool.poetry.extras]
-# kaleido doesn't work on jupyterlite yet
-static_plots = ["kaleido==0.2.1"]
-
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
