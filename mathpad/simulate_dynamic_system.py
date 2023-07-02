@@ -1,11 +1,10 @@
-from typing import Collection, Set, List, Optional, Tuple
+from typing import Collection, Set, List, Tuple
 from itertools import zip_longest
 
 import sympy
 import numpy as np
 from sympy.core.function import Function, AppliedUndef
 from sympy import Derivative
-import plotly.graph_objects as go
 from sympy.utilities.lambdify import lambdify
 from scipy.integrate import RK45
 
@@ -39,6 +38,7 @@ def simulate_dynamic_system(
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
     from IPython.display import display
     import plotly.io as pio
+    import plotly.graph_objects as go
     from tqdm import tqdm
 
     verbose = verbose or explain
