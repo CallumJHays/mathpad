@@ -1,3 +1,7 @@
+$$ \dot{\vec{vec}} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \frac{\text{m}}{\text{s}} \\ \hat{j} \cdot \frac{\text{m}}{\text{s}} \\ \hat{k} \cdot \frac{\text{m}}{\text{s}} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
+
+
+
 # mathpad
 
 <!-- TODO: set up all the services needed for these badges -->
@@ -61,9 +65,7 @@ pip install mathpad
   </td>
   <td>
 
-  $$ 5 \hspace{1.25em} \frac{\text{m}}{\text{s}} $$
-
-  $$ mph = 11.1847 \hspace{1.25em} \frac{\text{mile}}{\text{hour}} $$
+  ![Alt text](examples/imgs/showcase/basic.png)
 
   </td>
   </tr>
@@ -78,9 +80,9 @@ Currently the only in-depth documentation is `Walkthrough.ipynb`. You can access
 ## Showcase
 
 <table style="width: 100%;">
-<col style="width: 25%" />
-<col style="width: 50%" />
-<col style="width: 25%" />
+<col style="width: 10%" />
+<col style="width: 45%" />
+<col style="width: 45%" />
 
 <tr>
 <td>Feature</td> <td>Example</td> <td> Display </td>
@@ -102,14 +104,7 @@ feet.in_units(cm)
 </td>
 <td>
 
-$$ 1 \hspace{1.25em} \text{m} $$
-
-$$ 1 \hspace{1.25em} \frac{\text{m}}{\text{s}^{2}} $$
-
-$$ 30.48 \hspace{1.25em} \text{cm} $$
-
-
-$$ 1 \hspace{1.25em} \text{W} $$
+![Alt text](examples/imgs/showcase/units.png)
 
 </td>
 </tr>
@@ -126,9 +121,7 @@ c = m(5)
 </td>
 <td>
 
-$$ 2.5 \hspace{1.25em} \frac{\text{m}}{\text{s}} $$
-
-$$ 5 \hspace{1.25em} \text{m} $$
+![Alt text](examples/imgs/showcase/values.png)
 
 </td>
 </tr>
@@ -145,10 +138,7 @@ y = "\\hat{y}_1" * volts
 </td>
 <td>
 
-$$ t \hspace{1.25em} \text{s} $$
-
-
-$$ \hat{y}_1 \hspace{1.25em} \text{V} $$
+![Alt text](examples/imgs/showcase/symbols.png)
 
 </td>
 </tr>
@@ -163,7 +153,7 @@ a = "a(t)" * m / s ** 2
 </td>
 <td>
 
-$$ a{\left(t \right)} \hspace{1.25em} \frac{\text{m}}{\text{s}^{2}} $$
+![Alt text](examples/imgs/showcase/sym-funcs.png)
 
 </td>
 </tr>
@@ -178,7 +168,7 @@ eqn = (v == a * t)
 </td>
 <td>
 
-$$ 2.5 = t a \hspace{1.25em} \frac{\text{m}}{\text{s}} $$
+![Alt text](examples/imgs/showcase/equations.png)
 
 </td>
 </tr>
@@ -195,7 +185,7 @@ sln[a]
 </td>
 <td>
 
-$$ 0 \hspace{1.25em} \frac{\text{m}}{\text{s}^{2}} $$
+![Alt text](examples/imgs/showcase/solving.png)
 
 </td>
 </tr>
@@ -217,13 +207,7 @@ subs((t + 1)(t + 2), { t: 5 })
 </td>
 <td>
 
-$$ -1 \hspace{1.25em} dimensionless $$
-
-$$ t^{2} + 3 t + 2 \hspace{1.25em} \text{s}^{2} $$
-
-$$ \left(t + 1\right) \left(t + 2\right) \hspace{1.25em} \text{s}^{2} $$
-
-$$ 42 \hspace{1.25em} \text{s}^{2} $$
+![Alt text](examples/imgs/showcase/algebra.png)
 
 </td>
 </tr>
@@ -241,11 +225,7 @@ integral(a, wrt=t, between=(0, 10))
 </td>
 <td>
 
-
-$$ \dot{a} \hspace{1.25em} \frac{\text{m}}{\text{s}^{3}} $$
-
-$$ \int\limits_{0}^{10} a\, dt \hspace{1.25em} \frac{\text{m}}{\text{s}} $$
-
+![Alt text](examples/imgs/showcase/calculus.png)
 
 </td>
 </tr>
@@ -271,16 +251,9 @@ v2.cross(v3)
 ```
 
 </td>
-<td style="font-family:Consolas;">
+<td>
 
-$$ \begin{bmatrix}1 \\ 2 \\ 3 \end{bmatrix} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
-$$ \begin{bmatrix}x \\ y \\ z \end{bmatrix} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
-$$ \vec{v_3} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
-$$ \left[\begin{matrix}x\\y\\z\end{matrix}\right] \times \vec{v_3} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m}^{2} \\ \hat{j} \cdot \text{m}^{2} \\ \hat{k} \cdot \text{m}^{2} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
+![Alt text](examples/imgs/showcase/vectors.png)
 
 </td>
 </tr>
@@ -309,19 +282,7 @@ I = Mat[O2, O2].I
 </td>
 <td>
 
-<br />
-<br />
-
-$$ \left[\begin{matrix}1 & 2\\3 & 4\\5 & 6\end{matrix}\right] \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize \hspace{0.75em} ⟷ \hspace{0.75em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O2}\normalsize $$
-
-
-<br />
-
-$$ \begin{bmatrix}x + 3 y + 5 z \\ 2 x + 4 y + 6 z \end{bmatrix} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O2}\normalsize $$
-
-$$ \mathbf{B} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O2}\normalsize \hspace{0.75em} ⟷ \hspace{0.75em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$
-
-$$ \left[\begin{matrix}1 & 0\\0 & 1\end{matrix}\right] \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O2}\normalsize \hspace{0.75em} ⟷ \hspace{0.75em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O2}\normalsize $$
+![Alt text](examples/imgs/showcase/matrices.png)
 
 </td>
 </tr>
@@ -344,7 +305,7 @@ y_fn({
 ```
 
 </td>
-<td>
+<td style="font-family: Consolas;">
 <br />
 
 array([0.84147098, 0.90929743, 0.14112001])
@@ -359,19 +320,6 @@ array([0.        , 0.25881905, 0.5       , 0.70710678, 0.8660254 ,
 </td>
 </tr>
 <tr>
-<td>Simulation</td>
-<td>
-
-```python
-
-generate_c_code(theta, [t])
-```
-
-</td>
-<td>
-
-
-
 </td>
 </tr>
 <tr>
