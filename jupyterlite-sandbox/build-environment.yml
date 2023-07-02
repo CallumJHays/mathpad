@@ -6,5 +6,6 @@ dependencies:
   - pip
   - jupyter_server
   - jupyterlite-core
+  - pydantic=1.* # pydantic 2 leads to an error in jupyterlite somewhere
   - pip:
     - jupyterlite-xeus-python
