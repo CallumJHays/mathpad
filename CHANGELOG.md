@@ -2,6 +2,31 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.0 (2023-07-02)
+
+### Feature
+
+* Mathpad 2.0 ([`30b70b5`](https://github.com/CallumJHays/mathpad/commit/30b70b57f2646da45619f9060b2d8f8fe6b58fd4))
+* Use sympy norm for better latex ([`58945d5`](https://github.com/CallumJHays/mathpad/commit/58945d56d6f409620673b5550c581a2f9be0811e))
+
+### Fix
+
+* **3.7:** Import `Literal` from `typing_extensions` ([`e275bf1`](https://github.com/CallumJHays/mathpad/commit/e275bf1cdf0b4b6efffc40c405c92517753ed771))
+* Improve docs and comments ([`32f953b`](https://github.com/CallumJHays/mathpad/commit/32f953bee49cce951ae8ac1b3f5a70bb23949105))
+* Support symbolic function vectors; "v(t)" @ space ([`e4b9faf`](https://github.com/CallumJHays/mathpad/commit/e4b9faf7d43f953093bf898b2bc07228def7830a))
+* Fix imports in vector.py ([`f7b4a9a`](https://github.com/CallumJHays/mathpad/commit/f7b4a9a0efeeb05635f8f04ca7eb243c0bb1eee9))
+* Add missing f for f-string ([`837bc46`](https://github.com/CallumJHays/mathpad/commit/837bc465d3dc0b12fca6703de709c4b17ed02ccf))
+
+### Breaking
+
+* mathpad 2.0 ([`30b70b5`](https://github.com/CallumJHays/mathpad/commit/30b70b57f2646da45619f9060b2d8f8fe6b58fd4))
+
+### Documentation
+
+* Clean readme ([`ae16a72`](https://github.com/CallumJHays/mathpad/commit/ae16a72385c0a8902b3d60649d9fa1eff5fba127))
+* Fix readme ([`e4ceda0`](https://github.com/CallumJHays/mathpad/commit/e4ceda0eb8e2ad0abd3ff9a9f6f5e68acc030f96))
+* Fix readme ([`542fe5b`](https://github.com/CallumJHays/mathpad/commit/542fe5b6c366eaa311891820c81baffeb746ef96))
+
 ## v1.2.0 (2022-10-26)
 ### Feature
 * Add @mathpad_constructor to elec module where valid ([`806a4d6`](https://github.com/CallumJHays/mathpad/commit/806a4d62f62cc8b243057bd7d2de43868aa195a9))
