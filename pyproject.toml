@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mathpad"
-version = "1.1.0"
+version = "2.0.0"
 description = "Simplified interface to Sympy for solving physics, engineering and maths problems"
 authors = ["Callum J Hays <callumjhays@gmail.com>"]
 license = "MIT"
@@ -30,6 +30,7 @@ sympy = "^1.8"
 tqdm = "^4.62.3"
 scipy = "^1.7.1"
 plotly = "^5.3.1"
+k3d = "^2.15.2"
 
 
 [tool.poetry.extras]

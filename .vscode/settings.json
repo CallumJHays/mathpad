@@ -4,7 +4,7 @@
     
     "python.formatting.provider": "black",
     "cortex-debug.armToolchainPath": "/usr/bin",
-    "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.typeCheckingMode": "basic",
     "python.testing.pytestArgs": ["tests"],
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
@@ -13,5 +13,5 @@
     "jupyter.debugJustMyCode": false,
     "cSpell.words": [
         "Kirchoff's"
-    ]
+    ],
 }

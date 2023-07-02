@@ -3,36 +3,31 @@ from mathpad import *
 from _test_utils import expect_err
 
 def test_R3_anonymous():
-    vec = R3()[1, 2, 3]
+    vec = R3("O")[1, 2, 3] * m
 
-    assert str(vec) == "[1, 2, 3]"
+    assert str(vec) == "[1, 2, 3] wrt. O"
 
 def test_R3_basis_constructors():
-    O = R3("O")
+    O = R3("O") * m
 
     assert O.i == O[1, 0, 0]
     assert O.j == O[0, 1, 0]
     assert O.k == O[0, 0, 1]
 
 def test_VectorSpace_constructor():
-    O = R3("O")
+    O = R3("O") * m
     vec = O[1, 2, 3]
 
-    assert vec.space is O
+    assert vec.frame is O
     assert vec == O[1, 2, 3]
     assert vec.i == 1
     assert vec.j == 2
     assert vec.k == 3
 
-def test_VectorSpace_abstract_only():
-    with expect_err(AssertionError):
-        VectorSpace("O")
-
 def test_R3_disp():
-    O = R3("O")
+    O = R3("O") * m
     
     assert str(O) == '<R3 name="O">'
-    assert str(R3()) == '<R3>'
 
 
 def test_must_specify_base_units():
@@ -83,31 +78,31 @@ def test_custom_VectorSpace():
     assert state.omega == 4 * radian / second
 
 def test_VectorSpace_div_Val():
-    O = R3("O")
+    O = R3("O") * m
 
-    for units in (O / m).base_units:
+    for units in (O / m).space.base_units:
         assert units == 1
 
 def test_Val_div_VectorSpace():
-    O = R3("O")
+    O = R3("O") * m
 
-    for units in (m / O).base_units:
+    for units in (m / O).space.base_units:
         assert units == 1
 
 def test_VectorSpace_mul_Val():
-    O = R3("O")
+    O = R3("O") * m
 
-    for units in (O * m).base_units:
+    for units in (O * m).space.base_units:
         assert units == m**2
 
 def test_Val_mul_VectorSpace():
-    O = R3("O")
+    O = R3("O") * m
 
-    for units in (m * O).base_units:
+    for units in (m * O).space.base_units:
         assert units == m**2
 
-def test_create_vector_function():
+def test_create_vector_symbolic_function():
     x = "x" * m
-    s = "s(x)" @ R3("O")
+    s = "s(x)" @ R3("O") * m
     v = diff(s, wrt=x)
     print(v)

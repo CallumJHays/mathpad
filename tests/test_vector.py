@@ -9,10 +9,10 @@ def test_R3_disp():
     assert str(vec) == "[1, 2, 3] wrt. O"
 
 def test_R3_disp_sym():
-    O = R3("O")
+    O = R3("O") * m
     vec = "vec" @ O
 
-    assert str(vec) == '\\vec{vec} wrt. O'
+    assert str(vec) == r'vec{vec} wrt. O'
 
 def test_R3_add_R3():
     O = R3("O")
@@ -89,7 +89,7 @@ def test_Val_div_R3_fails():
         2 / vec # type: ignore
 
 def test_R3_cross():
-    O = R3("O")
+    O = R3("O") * m
     vec = O[1, 2, 3]
     vec2 = O[4, 5, 6]
 
@@ -98,7 +98,7 @@ def test_R3_cross():
 
 
 def test_R2_cross_fails():
-    O = R2("O")
+    O = R2("O") * m
     vec = O[1, 2]
     vec2 = O[3, 4]
 
@@ -106,7 +106,7 @@ def test_R2_cross_fails():
         vec.cross(vec2)
 
 def test_R3_dot():
-    O = R3("O")
+    O = R3("O") * m
     vec = O[1, 2, 3]
     vec2 = O[4, 5, 6]
 
@@ -114,7 +114,7 @@ def test_R3_dot():
     assert eqn.eval()  
 
 def test_R3_sym_dot():
-    O = R3("O")
+    O = R3("O") * m
     vec = "vec" @ O
     vec2 = O[1, 2, 3]
     
@@ -125,7 +125,7 @@ def test_R3_sym_dot():
     assert eqn.eval()
 
 def test_R3_sym_add():
-    O = R3("O")
+    O = R3("O") * m
     vec = "vec" @ O
     vec2 = O[1, 2, 3]
 
@@ -140,7 +140,7 @@ def test_R3_sym_add():
     assert eqn.eval()
 
 def test_R3_sym_cross():
-    O = R3("O")
+    O = R3("O") * m
     vec = "vec" @ O
     vec2 = O[1, 2, 3]
 
@@ -152,25 +152,25 @@ def test_R3_sym_cross():
     assert eqn.eval()
 
 def test_R3_diff_basic():
-    O = R3("O")
-    vec = O.zeros()
+    O = R3("O") * m
+    vec = O[0, 0, 0]
     dvec = diff(vec)
 
     eqn = dvec == vec / s
     assert eqn.eval()
 
 def test_R3_diff_syms():
-    O = R3("O")
+    O = R3("O") * m
     x = "x(t)" * m
     y = "y(t)" * m
     z = "z(t)" * m
     vec = O[x, y, z]
 
     dvec = diff(vec)
-    OutputSpace = O / s
-    assert OutputSpace.base_units == dvec.space.base_units
+    out_frame = O / s
+    assert out_frame.space == dvec.frame.space
 
-    eqn = dvec == OutputSpace[
+    eqn = dvec == out_frame[
         diff(x),
         diff(y),
         diff(z)
@@ -178,7 +178,7 @@ def test_R3_diff_syms():
     assert eqn.eval()
 
 def test_R3_integral_basic():
-    O = R3("O")
+    O = R3("O") * m
     vec = O[1, 2, 3]
     ivec = integral(vec)
 
@@ -186,7 +186,7 @@ def test_R3_integral_basic():
     assert eqn.eval()
 
 def test_R3_integral_syms():
-    O = R3("O")
+    O = R3("O") * m
     x = "x(t)" * m
     y = "y(t)" * m
     z = "z(t)" * m
@@ -202,5 +202,43 @@ def test_R3_integral_syms():
     assert eqn.eval()
 
 def test_R3_sym_func():
-    O = R3("O")
+    O = R3("O") * m
     vec = "vec(t)" @ O
+
+def test_R3_sym_func_repr_latex():
+    O = R3("O") * m
+    vec = "vec(t)" @ O
+
+    expected = r"$$ \vec{vec}(t) \hspace{1.25em} \begin{matrix} \hat{i} \cdot \text{m} \\ \hat{j} \cdot \text{m} \\ \hat{k} \cdot \text{m} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$"
+
+    assert vec._repr_latex_() == expected
+
+
+def test_R3_sym_func_diff():
+    O = R3("O") * m
+    vec = "vec(t)" @ O
+
+    dvec = diff(vec)
+    assert dvec.frame == O / s
+
+
+def test_R3_sym_func_diff_repr_latex():
+    O = R3("O") * m
+    vec = "vec(t)" @ O
+
+    dvec = diff(vec)
+    
+    expected = r"$$ \dot{\vec{vec}} \hspace{1.25em} \begin{matrix} \hat{i} \cdot \frac{\text{m}}{\text{s}} \\ \hat{j} \cdot \frac{\text{m}}{\text{s}} \\ \hat{k} \cdot \frac{\text{m}}{\text{s}} \end{matrix}\normalsize \hspace{0.7em} \small\text{wrt. O}\normalsize $$"
+
+    assert dvec._repr_latex_() == expected
+
+
+def test_R3_sym_func_diff_iter():
+    O = R3("O") * m
+    vec = "vec(t)" @ O
+    
+    x, y, z = diff(vec)
+
+    assert str(x) == 'Derivative(\\vec{vec}_{i}(t), t) meters/second'
+    assert str(y) == 'Derivative(\\vec{vec}_{j}(t), t) meters/second'
+    assert str(z) == 'Derivative(\\vec{vec}_{k}(t), t) meters/second'

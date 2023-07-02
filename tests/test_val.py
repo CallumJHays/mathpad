@@ -1,4 +1,5 @@
 from mathpad import *
+from mathpad.core.val import DimensionalExponentError, SumDimensionsMismatchError
 
 
 def test_mul_meters_int():

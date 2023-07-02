@@ -10,7 +10,7 @@ def test_sym_subs():
     assert eqn.eval()
 
 def test_R3_sym_subs():
-    O = R3("O")
+    O = R3("O") * m
     x = "x" * m
     y = "y" * m
     z = "z" * m

@@ -11,14 +11,11 @@ from scipy.integrate import RK45
 from IPython.display import display
 import plotly.io as pio
 
-from mathpad.val import Val
-from mathpad.equation import Equation
-from mathpad.algebra import subs, SubstitutionMap, simplify
-from mathpad._quality_of_life import t
-try:
-    from tqdm.notebook import tqdm
-except ImportError:
-    from tqdm import tqdm
+from mathpad.core.val import Val
+from mathpad.core.equation import Equation
+from mathpad.math.algebra import subs, SubstitutionMap, simplify
+from mathpad.core.common_vals import t
+from tqdm import tqdm
 
 
 def simulate_dynamic_system(
@@ -35,7 +32,7 @@ def simulate_dynamic_system(
     verbose: bool = True,
     display_plots: bool = True,
     display_progress_bar: bool = True,
-    display_explanation: bool = False,
+    explain: bool = False,
     # plot formatting (display_plots=True)
     plot_static: bool = False,
     plot_static_figsize: Tuple[int, int] = (960, 400),
@@ -44,7 +41,7 @@ def simulate_dynamic_system(
 ) -> List[Tuple[float, List[float]]]:
     "simulates a differential system specified by dynamics_equations from initial conditions at x_axis=0 (typically t=0) to x_final"
 
-    verbose = verbose or display_explanation
+    verbose = verbose or explain
 
     if plot_static:
         # make static renderings a certain size, the default one is too square for my liking
@@ -56,7 +53,7 @@ def simulate_dynamic_system(
     # TODO: support plotting on separate axes, and subplots
     # TODO: ensure we aren't subbing out something that is required for a 'record' output
 
-    if display_explanation:
+    if explain:
         print("Using Input Equations:")
         for eqn in dynamics_equations:
             display(eqn)
@@ -111,9 +108,9 @@ def simulate_dynamic_system(
 
     solve_for = solve_for_highest_derivatives + solve_for_recorded_data
 
-    _print_if(verbose, f"Solving subbed Equations{':' if display_explanation else '...'}")
+    _print_if(verbose, f"Solving subbed Equations{':' if explain else '...'}")
 
-    if display_explanation:
+    if explain:
         for eqn in problem_eqns:
             display(eqn)
 
@@ -142,7 +139,7 @@ def simulate_dynamic_system(
         # convert it to a vector for lambdify below
         solution_vec = [solution[val] for val in solve_for]
 
-        if display_explanation:
+        if explain:
             print(
                 "Found Solution" + (f"#{solution_idx + 1}:" if all_solutions else ":")
             )
@@ -237,10 +234,10 @@ def simulate_dynamic_system(
         _print_if(
             verbose,
             f"Simulating from t=0 to t={x_final} with a max_step of {max_step}"
-            + (" with initial conditions:" if display_explanation else "."),
+            + (" with initial conditions:" if explain else "."),
         )
 
-        if display_explanation:
+        if explain:
             for replace, _with in initial_conditions.items():
                 display(replace == _with)
 

@@ -1,0 +1,43 @@
+<mxfile host="65bd71144e">
+    <diagram id="8zyJFC5WoWicYbn_2iFL" name="Page-1">
+        <mxGraphModel dx="476" dy="683" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="compiled.mpy&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="270" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="edgeStyle=none;html=1;" parent="1" source="4" target="2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="source.c" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="190" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="# run.py&lt;br&gt;&lt;br&gt;from mathpad import *&lt;br&gt;&lt;br&gt;from .actuaors import set_actuators&lt;br&gt;from .sensors import read_sensors&lt;br&gt;from .model import control_system&lt;br&gt;&lt;br&gt;FREQ = 50&lt;br&gt;&lt;br&gt;control = mathpad.codegen.micropython(&lt;br&gt;&amp;nbsp; &amp;nbsp; control_system(FREQ)&lt;br&gt;)&lt;br&gt;&lt;br&gt;def update():&lt;br&gt;&amp;nbsp; &amp;nbsp; x = read_sensors()&lt;br&gt;&amp;nbsp; &amp;nbsp; y = control(x)&lt;br&gt;&amp;nbsp; &amp;nbsp; set_actuators(y)&lt;br&gt;&lt;br&gt;timer = Timer(0)&lt;br&gt;timer.init(freq=FREQ, callback=update)" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="10" width="240" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="" style="edgeStyle=none;html=1;" parent="1" source="10" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="# model.py&lt;br&gt;&lt;br&gt;from mathpad import *&lt;br&gt;&lt;br&gt;def control_system(hz: int):&lt;br&gt;&amp;nbsp; &amp;nbsp;&amp;nbsp;&lt;br&gt;&amp;nbsp; &amp;nbsp; y = ...&lt;br&gt;&amp;nbsp; &amp;nbsp; return discretize(y)" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="20" width="160" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="# sensors.py&lt;br&gt;&lt;br&gt;def read_sensors():&lt;br&gt;&amp;nbsp; &amp;nbsp; x = ...&lt;br&gt;&amp;nbsp; &amp;nbsp; return x" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="20" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="# actuators.py&lt;br&gt;&lt;br&gt;def set_actuators(y: float):&lt;br&gt;&amp;nbsp; &amp;nbsp; x = ...&lt;br&gt;&amp;nbsp; &amp;nbsp; return x" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="130" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="edgeStyle=none;html=1;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="579.74" y="330" as="sourcePoint"/>
+                        <mxPoint x="579.74" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="control(x)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="350" width="120" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

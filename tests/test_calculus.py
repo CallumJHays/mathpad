@@ -31,6 +31,19 @@ def test_diff_wrt_nonsymbol_fails():
     else:
         assert False, "Expected ValueError"
 
+def test_R3_diff():
+    O = R3("O")
+    t = "t" * s
+    vec = O[
+        t,
+        2 * t**-1,
+        3 * t**2
+    ]
+    expected = (O / s)[1, -2/t**2, 6*t]
+    actual = diff(vec)
+
+    assert (actual == expected).eval()
+
 def test_integral():
     a = 10 * meters
     b = "b" * meters
@@ -49,3 +62,20 @@ def test_integral_wrt_nonsymbol_fails():
         pass
     else:
         assert False, "Expected ValueError"
+
+def test_R3_integral():
+    O = R3("O")
+    t = "t" * s
+    vec = O[
+        t,
+        2 * t**-1,
+        3 * t**2
+    ]
+    expected = (O * s)[
+        t**2 / 2,
+        2 * log(t),
+        t**3,
+    ]
+    actual = integral(vec)
+
+    assert (actual == expected).eval()
