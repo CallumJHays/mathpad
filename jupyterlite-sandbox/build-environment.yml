@@ -2,10 +2,12 @@ name: build-env
 channels:
   - conda-forge
 dependencies:
-  - python
+  - python >=3.6,<3.10
   - pip
   - jupyter_server
   - jupyterlite-core
+  - conda-build
   - pydantic=1.* # pydantic 2 leads to an error in jupyterlite somewhere
   - pip:
     - jupyterlite-xeus-python
+    - poetry
