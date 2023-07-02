@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.1 (2023-07-02)
+
+### Fix
+
+* **deps:** Forgot one package ([`0e330d9`](https://github.com/CallumJHays/mathpad/commit/0e330d9484615d2bea714999e0256b1c93a2832e))
+* **deps:** Move viz-only deps into 'viz' extras ([`d88975d`](https://github.com/CallumJHays/mathpad/commit/d88975d5817fb40643df09fb6877d7e1f8a65fee))
+* Use internal imports for now to simplify conda deps ([`a68f333`](https://github.com/CallumJHays/mathpad/commit/a68f33355d5ba143f03d1f318535520b86cd98c6))
+
+### Documentation
+
+* Update Walkthrough ([`8ff844d`](https://github.com/CallumJHays/mathpad/commit/8ff844dfbe6145d22284134931c1c8a4be94a8dd))
+
 ## v2.0.0 (2023-07-02)
 
 ### Feature
