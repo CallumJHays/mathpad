@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.0 (2023-07-08)
+
+### Feature
+
+* Support python3.10 ([`d8c93e7`](https://github.com/CallumJHays/mathpad/commit/d8c93e79909810e8b32776aa8f78949d2771b7d0))
+
 ## v2.0.1 (2023-07-02)
 
 ### Fix
