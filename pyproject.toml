@@ -23,7 +23,7 @@ packages = [
 "Changelog" = "https://mathpad.readthedocs.io/changelog.html"
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10" # < 3.10 required by scipy currently
+python = ">=3.7,<3.11" # < 3.10 required by scipy currently
 typing-extensions = "^4.0.0"
 numpy = "^1.20"
 sympy = "^1.8"
