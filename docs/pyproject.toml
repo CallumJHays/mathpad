@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "mathpad-docs"
+version = "0.1.0"
+description = "Documentation for mathpad"
+authors = ["Cal Hays <callumjhays@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "~3.10.13"
+mathpad = {path = ".."}
+jupyter-book = "^0.15.1"
+sphinx-autodoc-typehints = "^1.19" # we can't use newer versions because it needs sphinx > 7; unsupported by jupyter-book
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
